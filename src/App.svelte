@@ -90,7 +90,7 @@
 			return false;
 	}
 	const handlekeypressed = (event) => {
-		event.key = event.detail.letter
+		event.key = event.detail.keyLetter
 		if (event.key === 'ENTER') event.key = 'Enter'
 		if (event.key === 'DEL') event.key = 'Backspace'
 		handleKeydown(event)

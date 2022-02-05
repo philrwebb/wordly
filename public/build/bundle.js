@@ -1667,17 +1667,17 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[3] = list[i];
+    	child_ctx[2] = list[i];
     	return child_ctx;
     }
 
-    // (12:1) {#each $keyboardData.keystate as keysInRow}
+    // (7:1) {#each $keyboardData.keystate as keysInRow}
     function create_each_block(ctx) {
     	let keyrow;
     	let current;
 
     	keyrow = new Keyrow({
-    			props: { keysInRow: /*keysInRow*/ ctx[3] },
+    			props: { keysInRow: /*keysInRow*/ ctx[2] },
     			$$inline: true
     		});
 
@@ -1693,7 +1693,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const keyrow_changes = {};
-    			if (dirty & /*$keyboardData*/ 1) keyrow_changes.keysInRow = /*keysInRow*/ ctx[3];
+    			if (dirty & /*$keyboardData*/ 1) keyrow_changes.keysInRow = /*keysInRow*/ ctx[2];
     			keyrow.$set(keyrow_changes);
     		},
     		i: function intro(local) {
@@ -1714,7 +1714,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(12:1) {#each $keyboardData.keystate as keysInRow}",
+    		source: "(7:1) {#each $keyboardData.keystate as keysInRow}",
     		ctx
     	});
 
@@ -1745,7 +1745,7 @@ var app = (function () {
     			}
 
     			attr_dev(div, "class", "keyboard svelte-1p3x7iz");
-    			add_location(div, file$1, 10, 0, 252);
+    			add_location(div, file$1, 5, 0, 103);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1829,13 +1829,6 @@ var app = (function () {
     	component_subscribe($$self, keyboardData, $$value => $$invalidate(0, $keyboardData = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Keyboard', slots, []);
-
-    	let rows = [
-    		["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-    		["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-    		["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DEL"]
-    	];
-
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -1846,21 +1839,7 @@ var app = (function () {
     		bubble.call(this, $$self, event);
     	}
 
-    	$$self.$capture_state = () => ({
-    		Keyrow,
-    		keyboardData,
-    		rows,
-    		$keyboardData
-    	});
-
-    	$$self.$inject_state = $$props => {
-    		if ('rows' in $$props) rows = $$props.rows;
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
+    	$$self.$capture_state = () => ({ Keyrow, keyboardData, $keyboardData });
     	return [$keyboardData, keypressed_handler];
     }
 
@@ -1909,11 +1888,11 @@ var app = (function () {
     			t2 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? 'red' : 'black', false);
-    			add_location(h1, file, 100, 1, 3256);
+    			add_location(h1, file, 100, 1, 3259);
     			attr_dev(span, "class", "rows");
-    			add_location(span, file, 103, 1, 3331);
+    			add_location(span, file, 103, 1, 3334);
     			attr_dev(div, "class", "container svelte-1s1v7yy");
-    			add_location(div, file, 99, 0, 3231);
+    			add_location(div, file, 99, 0, 3234);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2070,7 +2049,7 @@ var app = (function () {
     	};
 
     	const handlekeypressed = event => {
-    		event.key = event.detail.letter;
+    		event.key = event.detail.keyLetter;
     		if (event.key === 'ENTER') event.key = 'Enter';
     		if (event.key === 'DEL') event.key = 'Backspace';
     		handleKeydown(event);

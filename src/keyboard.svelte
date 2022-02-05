@@ -1,11 +1,6 @@
 <script>
 	import Keyrow from './keyrow.svelte';
 	import { keyboardData } from './store.js';
-	let rows = [
-		["Q","W","E","R","T","Y","U","I","O","P"],
-		["A","S","D","F","G","H","J","K","L"],
-		["ENTER","Z","X","C","V","B","N","M","DEL"]
-	]
 </script>
 
 <div class='keyboard'>
