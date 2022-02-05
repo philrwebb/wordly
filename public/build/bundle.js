@@ -1744,7 +1744,7 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(div, "class", "keyboard svelte-1p3x7iz");
+    			attr_dev(div, "class", "keyboard svelte-1b1ccg1");
     			add_location(div, file$1, 5, 0, 103);
     		},
     		l: function claim(nodes) {
@@ -1866,9 +1866,17 @@ var app = (function () {
     	let div;
     	let h1;
     	let t1;
+    	let p;
+
+    	let t2_value = (/*$gameData*/ ctx[0].gameWon
+    	? 'You won!'
+    	: 'Guess the word') + "";
+
+    	let t2;
+    	let t3;
     	let span;
     	let rows;
-    	let t2;
+    	let t4;
     	let keyboard;
     	let current;
     	let mounted;
@@ -1883,16 +1891,20 @@ var app = (function () {
     			h1 = element("h1");
     			h1.textContent = "WEBWORD";
     			t1 = space();
+    			p = element("p");
+    			t2 = text(t2_value);
+    			t3 = space();
     			span = element("span");
     			create_component(rows.$$.fragment);
-    			t2 = space();
+    			t4 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? 'red' : 'black', false);
-    			add_location(h1, file, 100, 1, 3259);
+    			add_location(h1, file, 93, 1, 2972);
+    			add_location(p, file, 96, 1, 3047);
     			attr_dev(span, "class", "rows");
-    			add_location(span, file, 103, 1, 3334);
+    			add_location(span, file, 99, 1, 3112);
     			attr_dev(div, "class", "container svelte-1s1v7yy");
-    			add_location(div, file, 99, 0, 3234);
+    			add_location(div, file, 92, 0, 2947);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1901,9 +1913,12 @@ var app = (function () {
     			insert_dev(target, div, anchor);
     			append_dev(div, h1);
     			append_dev(div, t1);
+    			append_dev(div, p);
+    			append_dev(p, t2);
+    			append_dev(div, t3);
     			append_dev(div, span);
     			mount_component(rows, span, null);
-    			append_dev(div, t2);
+    			append_dev(div, t4);
     			mount_component(keyboard, div, null);
     			current = true;
 
@@ -1916,6 +1931,10 @@ var app = (function () {
     			if (dirty & /*$gameData*/ 1) {
     				set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? 'red' : 'black', false);
     			}
+
+    			if ((!current || dirty & /*$gameData*/ 1) && t2_value !== (t2_value = (/*$gameData*/ ctx[0].gameWon
+    			? 'You won!'
+    			: 'Guess the word') + "")) set_data_dev(t2, t2_value);
     		},
     		i: function intro(local) {
     			if (current) return;
@@ -1959,11 +1978,7 @@ var app = (function () {
     	validate_slots('App', slots, []);
 
     	const handleKeydown = event => {
-    		console.log($gameData.wordToGuess);
     		event.preventDefault();
-
-    		// if(event.key.toUpperCase() === "TAB" || event.key.toUpperCase() === "SHIFT")
-    		// 	return
     		if ($gameData.currentRow > 5) return;
 
     		if (event.key === 'Backspace' && $gameData.currentCol > 0) {
@@ -1977,7 +1992,6 @@ var app = (function () {
     			set_store_value(gameData, $gameData.currentCol = 0, $gameData);
     			set_store_value(gameData, $gameData.gameWon = checkWord($gameData.rowstate[$gameData.currentRow - 1], $gameData.wordToGuess), $gameData);
     			set_store_value(keyboardData, $keyboardData.keystate = setKeyBoard($keyboardData.keystate, $gameData.rowstate[$gameData.currentRow - 1]), $keyboardData);
-    			console.log($keyboardData.keystate);
     			return;
     		} else if ($gameData.currentCol <= 4 && event.key === 'Enter') {
     			console.log('not finished');
@@ -1998,16 +2012,13 @@ var app = (function () {
     							keystate[j][k].color = "lightgreen";
     							keystate[j][k].inWord = true;
     							keystate[j][k].rightplace = true;
-    							console.log("setting green");
     							break;
     						} else if (rowstate[i].inWord) {
     							keystate[j][k].color = "#fad6a5";
     							keystate[j][k].inWord = true;
-    							console.log("setting orange");
     							break;
     						} else {
     							keystate[j][k].color = "lightgrey";
-    							console.log("setting lightgrey");
     							break;
     						}
     					}

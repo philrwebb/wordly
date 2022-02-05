@@ -3,10 +3,7 @@
 	import Keyboard from "./keyboard.svelte";
 	import {gameData, keyboardData, initialiseStore} from "./store.js"
 	const handleKeydown = (event) => {
-		console.log($gameData.wordToGuess);
 		event.preventDefault();
-		// if(event.key.toUpperCase() === "TAB" || event.key.toUpperCase() === "SHIFT")
-		// 	return
 		if($gameData.currentRow > 5) return
 		if(event.key === 'Backspace' && $gameData.currentCol > 0) {
 			$gameData.currentCol--
@@ -19,7 +16,6 @@
 			$gameData.currentCol = 0
 			$gameData.gameWon = checkWord($gameData.rowstate[$gameData.currentRow-1], $gameData.wordToGuess)	
 			$keyboardData.keystate = setKeyBoard($keyboardData.keystate, $gameData.rowstate[$gameData.currentRow-1]);
-			console.log($keyboardData.keystate);
 			return
 		} else if ($gameData.currentCol <= 4 && event.key === 'Enter') {
 			console.log('not finished')
@@ -39,16 +35,13 @@
 							keystate[j][k].color = "lightgreen"
 							keystate[j][k].inWord = true
 							keystate[j][k].rightplace = true
-							console.log("setting green");
 							break;
 						} else if (rowstate[i].inWord) {
 							keystate[j][k].color = "#fad6a5"
 							keystate[j][k].inWord = true
-							console.log("setting orange")
 							break;
 						} else {
 							keystate[j][k].color = "lightgrey";
-							console.log("setting lightgrey")
 							break;
 						}
 					}
@@ -101,13 +94,14 @@
 	<h1 style:color="{$gameData.gameWon ? 'red' : 'black'}">
 		WEBWORD
 	</h1>
+	<p>
+		{$gameData.gameWon ? 'You won!' : 'Guess the word'}
+	</p>
 	<span class="rows">
 		<Rows></Rows>
 	</span>
 	<Keyboard on:keypressed={handlekeypressed}></Keyboard>
 </div>
-<!-- <button on:click={initialiseStore($keyboardData, $gameData)}>Reset Game</button> -->
-
 
 <style>
 	.container {

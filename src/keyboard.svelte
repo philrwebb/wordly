@@ -13,7 +13,6 @@
 	.keyboard {
 		display: grid;
 		grid-template-columns: 1fr;
-		/* align-items: center; */
 		justify-items: center;
 		padding: 0;
 		margin: 0;
