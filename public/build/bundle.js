@@ -841,31 +841,6 @@ var app = (function () {
         return { set, update, subscribe };
     }
 
-    const initialiseStore = (keyboardData, gameData) => {
-      for (let i = 0; i < keyboardData.keystate.length; i++) {
-        for (let j = 0; j < keyboardData.keystate[i].length; j++) {
-          keyboardData.keystate[i][j].inWord = false;
-          keyboardData.keystate[i][j].picked = false;
-          keyboardData.keystate[i][j].rightPlace = false;
-          keyboardData.keystate[i][j].color = 'white';
-        }
-      }
-      for (let i = 0; i < gameData.rowstate.length; i++)
-      {
-    	  for (let j = 0; j < gameData.rowstate[i].length; j++) {
-    		  gameData.rowstate[i][j].inWord = false;
-    		  gameData.rowstate[i][j].content = '';
-    		  gameData.rowstate[i][j].rightPlace = false;
-    		  gameData.rowstate[i][j].color = 'white';
-    	  }
-      }
-      gameData.gameWon = false;
-      gameData.currentRow = 0;
-      gameData.currentCol = 0;
-      gameData.wordToGuess = wordsToGuess[Math.floor(Math.random() * 23)];
-    };
-
-
     const keyboardData = writable({
       keystate: [
         [
@@ -1870,7 +1845,7 @@ var app = (function () {
 
     	let t2_value = (/*$gameData*/ ctx[0].gameWon
     	? 'You won!'
-    	: 'Guess the word') + "";
+    	: /*message*/ ctx[1]) + "";
 
     	let t2;
     	let t3;
@@ -1883,7 +1858,7 @@ var app = (function () {
     	let dispose;
     	rows = new Rows({ $$inline: true });
     	keyboard = new Keyboard({ $$inline: true });
-    	keyboard.$on("keypressed", /*handlekeypressed*/ ctx[2]);
+    	keyboard.$on("keypressed", /*handlekeypressed*/ ctx[3]);
 
     	const block = {
     		c: function create() {
@@ -1899,12 +1874,12 @@ var app = (function () {
     			t4 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? 'red' : 'black', false);
-    			add_location(h1, file, 93, 1, 2972);
-    			add_location(p, file, 96, 1, 3047);
+    			add_location(h1, file, 97, 1, 3124);
+    			add_location(p, file, 100, 1, 3199);
     			attr_dev(span, "class", "rows");
-    			add_location(span, file, 99, 1, 3112);
+    			add_location(span, file, 103, 1, 3256);
     			attr_dev(div, "class", "container svelte-1s1v7yy");
-    			add_location(div, file, 92, 0, 2947);
+    			add_location(div, file, 96, 0, 3099);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1923,7 +1898,7 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(window, "keydown", /*handleKeydown*/ ctx[1], false, false, false);
+    				dispose = listen_dev(window, "keydown", /*handleKeydown*/ ctx[2], false, false, false);
     				mounted = true;
     			}
     		},
@@ -1932,9 +1907,9 @@ var app = (function () {
     				set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? 'red' : 'black', false);
     			}
 
-    			if ((!current || dirty & /*$gameData*/ 1) && t2_value !== (t2_value = (/*$gameData*/ ctx[0].gameWon
+    			if ((!current || dirty & /*$gameData, message*/ 3) && t2_value !== (t2_value = (/*$gameData*/ ctx[0].gameWon
     			? 'You won!'
-    			: 'Guess the word') + "")) set_data_dev(t2, t2_value);
+    			: /*message*/ ctx[1]) + "")) set_data_dev(t2, t2_value);
     		},
     		i: function intro(local) {
     			if (current) return;
@@ -1968,12 +1943,13 @@ var app = (function () {
     }
 
     function instance($$self, $$props, $$invalidate) {
+    	let message;
     	let $gameData;
     	let $keyboardData;
     	validate_store(gameData, 'gameData');
     	component_subscribe($$self, gameData, $$value => $$invalidate(0, $gameData = $$value));
     	validate_store(keyboardData, 'keyboardData');
-    	component_subscribe($$self, keyboardData, $$value => $$invalidate(3, $keyboardData = $$value));
+    	component_subscribe($$self, keyboardData, $$value => $$invalidate(4, $keyboardData = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('App', slots, []);
 
@@ -1999,6 +1975,9 @@ var app = (function () {
     		} else if ($gameData.currentCol <= 4 && event.key.length === 1 && (event.key >= 'a' && event.key <= 'z' || event.key >= 'A' && event.key <= 'Z')) {
     			set_store_value(gameData, $gameData.rowstate[$gameData.currentRow][$gameData.currentCol].content = event.key.toUpperCase(), $gameData);
     			set_store_value(gameData, $gameData.currentCol++, $gameData);
+    			return;
+    		} else if ($gameData.currentRow > 4) {
+    			$$invalidate(1, message = "Bad Luck");
     			return;
     		}
     	};
@@ -2077,16 +2056,32 @@ var app = (function () {
     		Keyboard,
     		gameData,
     		keyboardData,
-    		initialiseStore,
     		handleKeydown,
     		setKeyBoard,
     		checkWord,
     		handlekeypressed,
+    		message,
     		$gameData,
     		$keyboardData
     	});
 
-    	return [$gameData, handleKeydown, handlekeypressed];
+    	$$self.$inject_state = $$props => {
+    		if ('message' in $$props) $$invalidate(1, message = $$props.message);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$gameData*/ 1) {
+    			$$invalidate(1, message = $gameData.currentRow > 4 && !$gameData.gameWorn
+    			? 'Bad Luck'
+    			: 'Guess the word');
+    		}
+    	};
+
+    	return [$gameData, message, handleKeydown, handlekeypressed];
     }
 
     class App extends SvelteComponentDev {

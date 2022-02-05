@@ -1,7 +1,8 @@
 <script>
 	import Rows from "./rows.svelte";
 	import Keyboard from "./keyboard.svelte";
-	import {gameData, keyboardData, initialiseStore} from "./store.js"
+	import {gameData, keyboardData} from "./store.js"
+	$: message = $gameData.currentRow > 4 && !$gameData.gameWorn ? 'Bad Luck' : 'Guess the word';
 	const handleKeydown = (event) => {
 		event.preventDefault();
 		if($gameData.currentRow > 5) return
@@ -24,7 +25,10 @@
 			$gameData.rowstate[$gameData.currentRow][$gameData.currentCol].content = event.key.toUpperCase()
 			$gameData.currentCol++
 			return
-		} 
+		} else if ($gameData.currentRow > 4) {
+			message = "Bad Luck"
+			return
+		}
 	}
 	const setKeyBoard = (keystate, rowstate) => {	
 		for(let i = 0; i < rowstate.length; i++) {
@@ -95,7 +99,7 @@
 		WEBWORD
 	</h1>
 	<p>
-		{$gameData.gameWon ? 'You won!' : 'Guess the word'}
+		{$gameData.gameWon ? 'You won!' : message }
 	</p>
 	<span class="rows">
 		<Rows></Rows>
