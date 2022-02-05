@@ -9,3 +9,7 @@ To get this project local - assuming you have node/npm, git:
 4. npm run dev
 
 5. Browse to: http://localhost:3000
+
+You can view this in action at:
+
+  https://philrwebb-word.netlify.com
