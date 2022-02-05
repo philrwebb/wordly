@@ -1,7 +1,7 @@
 <script>
 	import Rows from "./rows.svelte";
 	import Keyboard from "./keyboard.svelte";
-	import {gameData, keyboardData} from "./store.js"
+	import {gameData, keyboardData, initialiseStore} from "./store.js"
 	const handleKeydown = (event) => {
 		console.log($gameData.wordToGuess);
 		event.preventDefault();
@@ -106,11 +106,12 @@
 	</span>
 	<Keyboard on:keypressed={handlekeypressed}></Keyboard>
 </div>
+<!-- <button on:click={initialiseStore($keyboardData, $gameData)}>Reset Game</button> -->
 
 
 <style>
 	.container {
-		height: 700px;
+		height: 650px;
 		display: grid;
 		align-items: space-around;
 		justify-content:center;
