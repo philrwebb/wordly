@@ -841,15 +841,52 @@ var app = (function () {
         return { set, update, subscribe };
     }
 
+    const keyboardData = writable({
+    	keystate: [
+    		[
+    			{keyLetter: "Q", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "W", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "E", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "R", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "T", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "Y", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "I", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "O", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "P", inWord: false, picked: false, rightPlace: false, color: "white"}
+    		],
+    		[
+    			{keyLetter: "A", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "S", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "D", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "F", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "G", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "H", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "J", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "K", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "L", inWord: false, picked: false, rightPlace: false, color: "white"}
+    		],
+    		[
+    			{keyLetter: "ENTER", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "Z", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "X", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "C", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "V", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "B", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "N", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "M", inWord: false, picked: false, rightPlace: false, color: "white"},
+    			{keyLetter: "DEL", inWord: false, picked: false, rightPlace: false, color: "white"}
+    		]
+    	]
+    });
+
     const gameData = writable(
     {
     	wordToGuess: [
-    		"T",
-    		"R",
-    		"A",
-    		"I",
-    		"N"
-    	],
+    		["T","R","A","I","T"],
+    		["T","R","E","A","T"],
+    		["P","A","N","I","C"],
+    		["M","O","I","S","T"]
+    	][Math.floor(Math.random() * 4)],
     	gameWon: false,
     	currentRow: 0,
     	currentCol: 0,
@@ -1093,31 +1130,32 @@ var app = (function () {
 
     function create_fragment$3(ctx) {
     	let div;
-    	let t;
     	let mounted;
     	let dispose;
 
     	const block = {
     		c: function create() {
     			div = element("div");
-    			t = text(/*letter*/ ctx[0]);
-    			attr_dev(div, "class", "key svelte-18yo51s");
-    			add_location(div, file$3, 6, 0, 138);
+    			div.textContent = `${/*keyLetter*/ ctx[2]}`;
+    			attr_dev(div, "class", "key svelte-1ez4wip");
+    			set_style(div, "background-color", /*letter*/ ctx[0].color, false);
+    			add_location(div, file$3, 7, 0, 176);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			append_dev(div, t);
 
     			if (!mounted) {
-    				dispose = listen_dev(div, "click", /*click_handler*/ ctx[2], false, false, false);
+    				dispose = listen_dev(div, "click", /*click_handler*/ ctx[3], false, false, false);
     				mounted = true;
     			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*letter*/ 1) set_data_dev(t, /*letter*/ ctx[0]);
+    			if (dirty & /*letter*/ 1) {
+    				set_style(div, "background-color", /*letter*/ ctx[0].color, false);
+    			}
     		},
     		i: noop,
     		o: noop,
@@ -1143,30 +1181,37 @@ var app = (function () {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Key', slots, []);
     	const dispatch = createEventDispatcher();
-    	let { letter = "A" } = $$props;
+    	let { letter = {} } = $$props;
+    	let keyLetter = letter.keyLetter;
     	const writable_props = ['letter'];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Key> was created with unknown prop '${key}'`);
     	});
 
-    	const click_handler = () => dispatch('keypressed', { letter });
+    	const click_handler = () => dispatch("keypressed", { keyLetter });
 
     	$$self.$$set = $$props => {
     		if ('letter' in $$props) $$invalidate(0, letter = $$props.letter);
     	};
 
-    	$$self.$capture_state = () => ({ createEventDispatcher, dispatch, letter });
+    	$$self.$capture_state = () => ({
+    		createEventDispatcher,
+    		dispatch,
+    		letter,
+    		keyLetter
+    	});
 
     	$$self.$inject_state = $$props => {
     		if ('letter' in $$props) $$invalidate(0, letter = $$props.letter);
+    		if ('keyLetter' in $$props) $$invalidate(2, keyLetter = $$props.keyLetter);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [letter, dispatch, click_handler];
+    	return [letter, dispatch, keyLetter, click_handler];
     }
 
     class Key extends SvelteComponentDev {
@@ -1200,11 +1245,9 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (7:1) {#each keysInRow as key}
+    // (9:2) {#each keysInRow as key}
     function create_each_block$1(ctx) {
-    	let span;
     	let key;
-    	let t;
     	let current;
 
     	key = new Key({
@@ -1216,16 +1259,10 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
-    			span = element("span");
     			create_component(key.$$.fragment);
-    			t = space();
-    			attr_dev(span, "class", "keyc svelte-4f3twn");
-    			add_location(span, file$2, 7, 2, 168);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, span, anchor);
-    			mount_component(key, span, null);
-    			append_dev(span, t);
+    			mount_component(key, target, anchor);
     			current = true;
     		},
     		p: function update(ctx, dirty) {
@@ -1243,8 +1280,7 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(span);
-    			destroy_component(key);
+    			destroy_component(key, detaching);
     		}
     	};
 
@@ -1252,7 +1288,7 @@ var app = (function () {
     		block,
     		id: create_each_block$1.name,
     		type: "each",
-    		source: "(7:1) {#each keysInRow as key}",
+    		source: "(9:2) {#each keysInRow as key}",
     		ctx
     	});
 
@@ -1260,7 +1296,7 @@ var app = (function () {
     }
 
     function create_fragment$2(ctx) {
-    	let div;
+    	let span;
     	let current;
     	let each_value = /*keysInRow*/ ctx[0];
     	validate_each_argument(each_value);
@@ -1276,23 +1312,23 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
-    			div = element("div");
+    			span = element("span");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(div, "class", "keyrow svelte-4f3twn");
-    			add_location(div, file$2, 5, 0, 118);
+    			attr_dev(span, "class", "keyrow svelte-bofnpk");
+    			add_location(span, file$2, 5, 0, 83);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
+    			insert_dev(target, span, anchor);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div, null);
+    				each_blocks[i].m(span, null);
     			}
 
     			current = true;
@@ -1313,7 +1349,7 @@ var app = (function () {
     						each_blocks[i] = create_each_block$1(child_ctx);
     						each_blocks[i].c();
     						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(div, null);
+    						each_blocks[i].m(span, null);
     					}
     				}
 
@@ -1345,7 +1381,7 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(span);
     			destroy_each(each_blocks, detaching);
     		}
     	};
@@ -1364,7 +1400,7 @@ var app = (function () {
     function instance$2($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Keyrow', slots, []);
-    	let { keysInRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"] } = $$props;
+    	let { keysInRow = [] } = $$props;
     	const writable_props = ['keysInRow'];
 
     	Object.keys($$props).forEach(key => {
@@ -1419,17 +1455,17 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[2] = list[i];
+    	child_ctx[3] = list[i];
     	return child_ctx;
     }
 
-    // (11:1) {#each rows as keysInRow}
+    // (12:1) {#each $keyboardData.keystate as keysInRow}
     function create_each_block(ctx) {
     	let keyrow;
     	let current;
 
     	keyrow = new Keyrow({
-    			props: { keysInRow: /*keysInRow*/ ctx[2] },
+    			props: { keysInRow: /*keysInRow*/ ctx[3] },
     			$$inline: true
     		});
 
@@ -1443,7 +1479,11 @@ var app = (function () {
     			mount_component(keyrow, target, anchor);
     			current = true;
     		},
-    		p: noop,
+    		p: function update(ctx, dirty) {
+    			const keyrow_changes = {};
+    			if (dirty & /*$keyboardData*/ 1) keyrow_changes.keysInRow = /*keysInRow*/ ctx[3];
+    			keyrow.$set(keyrow_changes);
+    		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(keyrow.$$.fragment, local);
@@ -1462,7 +1502,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(11:1) {#each rows as keysInRow}",
+    		source: "(12:1) {#each $keyboardData.keystate as keysInRow}",
     		ctx
     	});
 
@@ -1472,7 +1512,7 @@ var app = (function () {
     function create_fragment$1(ctx) {
     	let div;
     	let current;
-    	let each_value = /*rows*/ ctx[0];
+    	let each_value = /*$keyboardData*/ ctx[0].keystate;
     	validate_each_argument(each_value);
     	let each_blocks = [];
 
@@ -1492,8 +1532,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(div, "class", "keyboard svelte-r1geds");
-    			add_location(div, file$1, 9, 0, 208);
+    			attr_dev(div, "class", "keyboard svelte-1p3x7iz");
+    			add_location(div, file$1, 10, 0, 252);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1508,8 +1548,8 @@ var app = (function () {
     			current = true;
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*rows*/ 1) {
-    				each_value = /*rows*/ ctx[0];
+    			if (dirty & /*$keyboardData*/ 1) {
+    				each_value = /*$keyboardData*/ ctx[0].keystate;
     				validate_each_argument(each_value);
     				let i;
 
@@ -1572,6 +1612,9 @@ var app = (function () {
     }
 
     function instance$1($$self, $$props, $$invalidate) {
+    	let $keyboardData;
+    	validate_store(keyboardData, 'keyboardData');
+    	component_subscribe($$self, keyboardData, $$value => $$invalidate(0, $keyboardData = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Keyboard', slots, []);
 
@@ -1591,17 +1634,22 @@ var app = (function () {
     		bubble.call(this, $$self, event);
     	}
 
-    	$$self.$capture_state = () => ({ Keyrow, rows });
+    	$$self.$capture_state = () => ({
+    		Keyrow,
+    		keyboardData,
+    		rows,
+    		$keyboardData
+    	});
 
     	$$self.$inject_state = $$props => {
-    		if ('rows' in $$props) $$invalidate(0, rows = $$props.rows);
+    		if ('rows' in $$props) rows = $$props.rows;
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [rows, keypressed_handler];
+    	return [$keyboardData, keypressed_handler];
     }
 
     class Keyboard extends SvelteComponentDev {
@@ -1649,11 +1697,11 @@ var app = (function () {
     			t2 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? 'red' : 'black', false);
-    			add_location(h1, file, 68, 1, 2125);
+    			add_location(h1, file, 100, 1, 3239);
     			attr_dev(span, "class", "rows");
-    			add_location(span, file, 71, 1, 2200);
+    			add_location(span, file, 103, 1, 3314);
     			attr_dev(div, "class", "container svelte-2skkaw");
-    			add_location(div, file, 67, 0, 2100);
+    			add_location(div, file, 99, 0, 3214);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1711,12 +1759,16 @@ var app = (function () {
 
     function instance($$self, $$props, $$invalidate) {
     	let $gameData;
+    	let $keyboardData;
     	validate_store(gameData, 'gameData');
     	component_subscribe($$self, gameData, $$value => $$invalidate(0, $gameData = $$value));
+    	validate_store(keyboardData, 'keyboardData');
+    	component_subscribe($$self, keyboardData, $$value => $$invalidate(3, $keyboardData = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('App', slots, []);
 
     	const handleKeydown = event => {
+    		console.log($gameData.wordToGuess);
     		event.preventDefault();
 
     		// if(event.key.toUpperCase() === "TAB" || event.key.toUpperCase() === "SHIFT")
@@ -1733,7 +1785,8 @@ var app = (function () {
     			set_store_value(gameData, $gameData.currentRow++, $gameData);
     			set_store_value(gameData, $gameData.currentCol = 0, $gameData);
     			set_store_value(gameData, $gameData.gameWon = checkWord($gameData.rowstate[$gameData.currentRow - 1], $gameData.wordToGuess), $gameData);
-    			console.log($gameData.gameWon);
+    			set_store_value(keyboardData, $keyboardData.keystate = setKeyBoard($keyboardData.keystate, $gameData.rowstate[$gameData.currentRow - 1]), $keyboardData);
+    			console.log($keyboardData.keystate);
     			return;
     		} else if ($gameData.currentCol <= 4 && event.key === 'Enter') {
     			console.log('not finished');
@@ -1745,7 +1798,38 @@ var app = (function () {
     		}
     	};
 
+    	const setKeyBoard = (keystate, rowstate) => {
+    		for (let i = 0; i < rowstate.length; i++) {
+    			for (let j = 0; j < keystate.length; j++) {
+    				for (let k = 0; k < keystate[j].length; k++) {
+    					if (keystate[j][k].keyLetter === rowstate[i].content) {
+    						if (rowstate[i].inWord && rowstate[i].rightPlace) {
+    							keystate[j][k].color = "lightgreen";
+    							keystate[j][k].inWord = true;
+    							keystate[j][k].rightplace = true;
+    							console.log("setting green");
+    							break;
+    						} else if (rowstate[i].inWord) {
+    							keystate[j][k].color = "#fad6a5";
+    							keystate[j][k].inWord = true;
+    							console.log("setting orange");
+    							break;
+    						} else {
+    							keystate[j][k].color = "lightgrey";
+    							console.log("setting lightgrey");
+    							break;
+    						}
+    					}
+    				}
+    			}
+    		}
+
+    		return keystate;
+    	};
+
     	const checkWord = (row, word) => {
+    		console.log(row, word);
+
     		for (let i = 0; i <= 4; i++) {
     			if (word[i] === row[i].content) {
     				row[i].inWord = true;
@@ -1758,8 +1842,9 @@ var app = (function () {
     			for (let j = 0; j <= 4; j++) {
     				if (!row[i].rightPlace && row[i].content === word[j]) {
     					row[i].inWord = true;
-    					row[i].color = "lightgrey";
-    				}
+    					row[i].rightPlace = false;
+    					row[i].color = "#fad6a5";
+    				} else if (!row[i].rightPlace && !row[i].inWord) row[i].color = "lightgrey";
     			}
     		}
 
@@ -1789,10 +1874,13 @@ var app = (function () {
     		Rows,
     		Keyboard,
     		gameData,
+    		keyboardData,
     		handleKeydown,
+    		setKeyBoard,
     		checkWord,
     		handlekeypressed,
-    		$gameData
+    		$gameData,
+    		$keyboardData
     	});
 
     	return [$gameData, handleKeydown, handlekeypressed];

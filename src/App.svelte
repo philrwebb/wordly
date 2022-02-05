@@ -1,8 +1,9 @@
 <script>
 	import Rows from "./rows.svelte";
 	import Keyboard from "./keyboard.svelte";
-	import {gameData} from "./store.js"
+	import {gameData, keyboardData} from "./store.js"
 	const handleKeydown = (event) => {
+		console.log($gameData.wordToGuess);
 		event.preventDefault();
 		// if(event.key.toUpperCase() === "TAB" || event.key.toUpperCase() === "SHIFT")
 		// 	return
@@ -17,7 +18,8 @@
 			$gameData.currentRow++
 			$gameData.currentCol = 0
 			$gameData.gameWon = checkWord($gameData.rowstate[$gameData.currentRow-1], $gameData.wordToGuess)	
-			console.log($gameData.gameWon)
+			$keyboardData.keystate = setKeyBoard($keyboardData.keystate, $gameData.rowstate[$gameData.currentRow-1]);
+			console.log($keyboardData.keystate);
 			return
 		} else if ($gameData.currentCol <= 4 && event.key === 'Enter') {
 			console.log('not finished')
@@ -28,7 +30,35 @@
 			return
 		} 
 	}
+	const setKeyBoard = (keystate, rowstate) => {	
+		for(let i = 0; i < rowstate.length; i++) {
+			for (let j = 0; j < keystate.length; j++) {
+				for(let k = 0; k < keystate[j].length; k++) {
+					if(keystate[j][k].keyLetter === rowstate[i].content) {
+						if(rowstate[i].inWord && rowstate[i].rightPlace) {
+							keystate[j][k].color = "lightgreen"
+							keystate[j][k].inWord = true
+							keystate[j][k].rightplace = true
+							console.log("setting green");
+							break;
+						} else if (rowstate[i].inWord) {
+							keystate[j][k].color = "#fad6a5"
+							keystate[j][k].inWord = true
+							console.log("setting orange")
+							break;
+						} else {
+							keystate[j][k].color = "lightgrey";
+							console.log("setting lightgrey")
+							break;
+						}
+					}
+				}
+			}
+		}
+		return keystate;
+	}
 	const checkWord = (row, word) => {
+		console.log(row, word);
 		for(let i = 0; i <= 4; i++) {
 			if (word[i] === row[i].content)
 				{
@@ -43,8 +73,10 @@
 					if(!row[i].rightPlace && row[i].content === word[j])
 						{
 							row[i].inWord = true;
+							row[i].rightPlace = false;
+							row[i].color = "#fad6a5";
+						} else if (!row[i].rightPlace && !row[i].inWord)
 							row[i].color = "lightgrey";
-						}
 				}
 		}
 		let countDone = 0;
