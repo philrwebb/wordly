@@ -71,6 +71,13 @@ export const keyboardData = writable({
         color: 'white',
       },
       {
+        keyLetter: 'U',
+        inWord: false,
+        picked: false,
+        rightPlace: false,
+        color: 'white',
+      },
+      {
         keyLetter: 'I',
         inWord: false,
         picked: false,
