@@ -14,7 +14,7 @@ export const initialiseStore = (keyboardData, gameData) => {
 	  for (let j = 0; j < gameData.rowstate[i].length; j++) {
 		  gameData.rowstate[i][j].inWord = false
 		  gameData.rowstate[i][j].content = ''
-		  gameData.rowstate[i][j].rightPlace = falserr
+		  gameData.rowstate[i][j].rightPlace = false
 		  gameData.rowstate[i][j].color = 'white'
 	  }
   }
@@ -22,6 +22,7 @@ export const initialiseStore = (keyboardData, gameData) => {
   gameData.currentRow = 0;
   gameData.currentCol = 0;
   gameData.wordToGuess = wordsToGuess[Math.floor(Math.random() * 32)];
+  return {keyboardData, gameData}
 }
 
 
