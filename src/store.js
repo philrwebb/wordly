@@ -260,11 +260,15 @@ const wordsToGuess = [
     'GRAIN'.split(''),
     'GRAYS'.split(''),
     'GRAZE'.split(''),
-    'HIDES'.split('')	
+    'HIDES'.split(''),
+    'CHAIN'.split(''),
+    'BRING'.split(''),
+    'COUNT'.split(''),
+    'CREAM'.split('')
 ]
 
 export const gameData = writable({
-  wordToGuess: wordsToGuess[Math.floor(Math.random() * 23)],
+  wordToGuess: wordsToGuess[Math.floor(Math.random() * 32)],
   gameWon: false,
   currentRow: 0,
   currentCol: 0,
