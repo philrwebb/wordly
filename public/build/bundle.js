@@ -1874,7 +1874,7 @@ var app = (function () {
     const { console: console_1 } = globals;
     const file = "src/App.svelte";
 
-    // (119:4) {#if $gameData.gameWon}
+    // (119:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}
     function create_if_block(ctx) {
     	let button;
     	let mounted;
@@ -1884,7 +1884,7 @@ var app = (function () {
     		c: function create() {
     			button = element("button");
     			button.textContent = "Reset Game";
-    			add_location(button, file, 119, 6, 3900);
+    			add_location(button, file, 119, 6, 3952);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -1906,7 +1906,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(119:4) {#if $gameData.gameWon}",
+    		source: "(119:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}",
     		ctx
     	});
 
@@ -1933,7 +1933,7 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	let if_block = /*$gameData*/ ctx[0].gameWon && create_if_block(ctx);
+    	let if_block = (/*$gameData*/ ctx[0].gameWon || !/*$gameData*/ ctx[0].gameWon && /*$gameData*/ ctx[0].currentRow > 5) && create_if_block(ctx);
     	rows = new Rows({ $$inline: true });
     	keyboard = new Keyboard({ $$inline: true });
     	keyboard.$on("keypressed", /*handlekeypressed*/ ctx[3]);
@@ -1955,11 +1955,11 @@ var app = (function () {
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? "red" : "black", false);
     			add_location(h1, file, 113, 2, 3699);
-    			attr_dev(p, "class", "svelte-1m7s8kj");
+    			attr_dev(p, "class", "svelte-20rs1x");
     			add_location(p, file, 114, 2, 3768);
     			attr_dev(span, "class", "rows");
-    			add_location(span, file, 123, 2, 3969);
-    			attr_dev(div, "class", "container svelte-1m7s8kj");
+    			add_location(span, file, 123, 2, 4021);
+    			attr_dev(div, "class", "container svelte-20rs1x");
     			add_location(div, file, 112, 0, 3673);
     		},
     		l: function claim(nodes) {
@@ -1994,7 +1994,7 @@ var app = (function () {
     			? `You won in ${/*$gameData*/ ctx[0].currentRow} attempts`
     			: /*message*/ ctx[1]) + "")) set_data_dev(t2, t2_value);
 
-    			if (/*$gameData*/ ctx[0].gameWon) {
+    			if (/*$gameData*/ ctx[0].gameWon || !/*$gameData*/ ctx[0].gameWon && /*$gameData*/ ctx[0].currentRow > 5) {
     				if (if_block) {
     					if_block.p(ctx, dirty);
     				} else {

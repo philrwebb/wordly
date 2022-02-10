@@ -116,7 +116,7 @@
     {$gameData.gameWon
       ? `You won in ${$gameData.currentRow} attempts`
       : message}
-    {#if $gameData.gameWon}
+    {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}
       <button on:click={resetGame}>Reset Game</button>
     {/if}
   </p>
@@ -137,7 +137,9 @@
   }
   p {
     display: grid;
-    gap: 1 rem;
-    height: 2rem;
+	justify-content: center;
+	justify-items: center;
+    gap: 2 rem;
+    height: 4rem;
   }
 </style>
