@@ -99,7 +99,7 @@
 		WEBWORD
 	</h1>
 	<p>
-		{$gameData.gameWon ? 'You won!' : message }
+		{$gameData.gameWon ? `You won in ${$gameData.currentRow-1} attempts` : message }
 	</p>
 	<span class="rows">
 		<Rows></Rows>
