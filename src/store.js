@@ -9,23 +9,20 @@ export const initialiseStore = (keyboardData, gameData) => {
       keyboardData.keystate[i][j].color = 'white'
     }
   }
-  for (let i = 0; i < gameData.rowstate.length; i++)
-  {
-	  for (let j = 0; j < gameData.rowstate[i].length; j++) {
-		  gameData.rowstate[i][j].inWord = false
-		  gameData.rowstate[i][j].content = ''
-		  gameData.rowstate[i][j].rightPlace = false
-		  gameData.rowstate[i][j].color = 'white'
-	  }
+  for (let i = 0; i < gameData.rowstate.length; i++) {
+    for (let j = 0; j < gameData.rowstate[i].length; j++) {
+      gameData.rowstate[i][j].inWord = false
+      gameData.rowstate[i][j].content = ''
+      gameData.rowstate[i][j].rightPlace = false
+      gameData.rowstate[i][j].color = 'white'
+    }
   }
-  gameData.gameWon = false;
-  gameData.currentRow = 0;
-  gameData.currentCol = 0;
-  gameData.wordToGuess = wordsToGuess[Math.floor(Math.random() * 32)];
-  return {keyboardData, gameData}
+  gameData.gameWon = false
+  gameData.currentRow = 0
+  gameData.currentCol = 0
+  gameData.wordToGuess = wordToGuess()
+  return { keyboardData, gameData }
 }
-
-
 export const keyboardData = writable({
   keystate: [
     [
@@ -232,8 +229,8 @@ export const keyboardData = writable({
     ],
   ],
 })
-
-const wordsToGuess = [
+const wordToGuess = () => {
+  const wordsToGuess = [
     'ARRAY'.split(''),
     'TRAIT'.split(''),
     'TREAT'.split(''),
@@ -265,11 +262,26 @@ const wordsToGuess = [
     'CHAIN'.split(''),
     'BRING'.split(''),
     'COUNT'.split(''),
-    'CREAM'.split('')
-]
+    'CREAM'.split(''),
+    'DEBAR'.split(''),
+    'DAZES'.split(''),
+    'DEIFY'.split(''),
+    'DATED'.split(''),
+    'EAGER'.split(''),
+    'EAGLE'.split(''),
+    'EDITS'.split(''),
+    'ELEGY'.split(''),
+    'FIRST'.split(''),
+    'FISTS'.split(''),
+    'HORSE'.split(''),
+    'HUMAN'.split(''),
+    'HEAVY'.split(''),
+  ]
+  return wordsToGuess[Math.floor(Math.random() * wordsToGuess.length)]
+}
 
 export const gameData = writable({
-  wordToGuess: wordsToGuess[Math.floor(Math.random() * 32)],
+  wordToGuess: wordToGuess(),
   gameWon: false,
   currentRow: 0,
   currentCol: 0,

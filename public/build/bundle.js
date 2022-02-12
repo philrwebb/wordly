@@ -850,23 +850,20 @@ var app = (function () {
           keyboardData.keystate[i][j].color = 'white';
         }
       }
-      for (let i = 0; i < gameData.rowstate.length; i++)
-      {
-    	  for (let j = 0; j < gameData.rowstate[i].length; j++) {
-    		  gameData.rowstate[i][j].inWord = false;
-    		  gameData.rowstate[i][j].content = '';
-    		  gameData.rowstate[i][j].rightPlace = false;
-    		  gameData.rowstate[i][j].color = 'white';
-    	  }
+      for (let i = 0; i < gameData.rowstate.length; i++) {
+        for (let j = 0; j < gameData.rowstate[i].length; j++) {
+          gameData.rowstate[i][j].inWord = false;
+          gameData.rowstate[i][j].content = '';
+          gameData.rowstate[i][j].rightPlace = false;
+          gameData.rowstate[i][j].color = 'white';
+        }
       }
       gameData.gameWon = false;
       gameData.currentRow = 0;
       gameData.currentCol = 0;
-      gameData.wordToGuess = wordsToGuess[Math.floor(Math.random() * 32)];
-      return {keyboardData, gameData}
+      gameData.wordToGuess = wordToGuess();
+      return { keyboardData, gameData }
     };
-
-
     const keyboardData = writable({
       keystate: [
         [
@@ -1073,8 +1070,8 @@ var app = (function () {
         ],
       ],
     });
-
-    const wordsToGuess = [
+    const wordToGuess = () => {
+      const wordsToGuess = [
         'ARRAY'.split(''),
         'TRAIT'.split(''),
         'TREAT'.split(''),
@@ -1106,11 +1103,26 @@ var app = (function () {
         'CHAIN'.split(''),
         'BRING'.split(''),
         'COUNT'.split(''),
-        'CREAM'.split('')
-    ];
+        'CREAM'.split(''),
+        'DEBAR'.split(''),
+        'DAZES'.split(''),
+        'DEIFY'.split(''),
+        'DATED'.split(''),
+        'EAGER'.split(''),
+        'EAGLE'.split(''),
+        'EDITS'.split(''),
+        'ELEGY'.split(''),
+        'FIRST'.split(''),
+        'FISTS'.split(''),
+        'HORSE'.split(''),
+        'HUMAN'.split(''),
+        'HEAVY'.split(''),
+      ];
+      return wordsToGuess[Math.floor(Math.random() * wordsToGuess.length)]
+    };
 
     const gameData = writable({
-      wordToGuess: wordsToGuess[Math.floor(Math.random() * 32)],
+      wordToGuess: wordToGuess(),
       gameWon: false,
       currentRow: 0,
       currentCol: 0,
