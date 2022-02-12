@@ -1884,7 +1884,7 @@ var app = (function () {
     		c: function create() {
     			button = element("button");
     			button.textContent = "Reset Game";
-    			add_location(button, file, 119, 6, 3952);
+    			add_location(button, file, 119, 6, 3961);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -1954,13 +1954,13 @@ var app = (function () {
     			t5 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? "red" : "black", false);
-    			add_location(h1, file, 113, 2, 3699);
-    			attr_dev(p, "class", "svelte-20rs1x");
-    			add_location(p, file, 114, 2, 3768);
+    			add_location(h1, file, 113, 2, 3708);
+    			attr_dev(p, "class", "svelte-4ule5t");
+    			add_location(p, file, 114, 2, 3777);
     			attr_dev(span, "class", "rows");
-    			add_location(span, file, 123, 2, 4021);
-    			attr_dev(div, "class", "container svelte-20rs1x");
-    			add_location(div, file, 112, 0, 3673);
+    			add_location(span, file, 123, 2, 4030);
+    			attr_dev(div, "class", "container svelte-4ule5t");
+    			add_location(div, file, 112, 0, 3682);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");

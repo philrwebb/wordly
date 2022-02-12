@@ -103,9 +103,9 @@
     handleKeydown(event);
   };
   const resetGame = () => {
-	const retVal = initialiseStore($keyboardData, $gameData);
-	$keyboardData = retVal.keyboardData;
-	$gameData = retVal.gameData;
+    const retVal = initialiseStore($keyboardData, $gameData);
+    $keyboardData = retVal.keyboardData;
+    $gameData = retVal.gameData;
   };
 </script>
 
@@ -137,8 +137,8 @@
   }
   p {
     display: grid;
-	justify-content: center;
-	justify-items: center;
+    justify-content: center;
+    justify-items: center;
     gap: 2 rem;
     height: 4rem;
   }
