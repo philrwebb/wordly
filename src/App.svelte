@@ -1,11 +1,22 @@
 <script>
+  import { onMount } from "svelte";
   import Rows from "./rows.svelte";
   import Keyboard from "./keyboard.svelte";
-  import { gameData, keyboardData, initialiseStore } from "./store.js";
+  import {
+    gameData,
+    keyboardData,
+    initialiseStore,
+    getWords,
+  } from "./store.js";
   $: message =
     $gameData.currentRow > 5 && !$gameData.gameWorn
       ? "Bad Luck"
       : "Guess the word";
+  onMount(async () => {
+    let word = await getWords();
+    $gameData.wordToGuess = word
+    console.log(word);
+  });
   const handleKeydown = (event) => {
     event.preventDefault();
     if ($gameData.currentRow > 5) return;
@@ -102,8 +113,8 @@
     if (event.key === "DEL") event.key = "Backspace";
     handleKeydown(event);
   };
-  const resetGame = () => {
-    const retVal = initialiseStore($keyboardData, $gameData);
+  const  resetGame = async () => {
+    const retVal = await initialiseStore($keyboardData, $gameData);
     $keyboardData = retVal.keyboardData;
     $gameData = retVal.gameData;
   };

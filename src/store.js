@@ -1,6 +1,14 @@
 import { writable } from 'svelte/store'
+import supabase from './supabase'
 
-export const initialiseStore = (keyboardData, gameData) => {
+export const getWords = async () => {
+  let { data: words, error } = await supabase.from('words').select('word')
+  if (error) {return error}
+  const wordArray = words.map((elm) => elm.word.split(''))
+  return wordArray[Math.floor(Math.random() * wordArray.length)]
+}
+
+export const initialiseStore = async (keyboardData, gameData) => {
   for (let i = 0; i < keyboardData.keystate.length; i++) {
     for (let j = 0; j < keyboardData.keystate[i].length; j++) {
       keyboardData.keystate[i][j].inWord = false
@@ -20,7 +28,7 @@ export const initialiseStore = (keyboardData, gameData) => {
   gameData.gameWon = false
   gameData.currentRow = 0
   gameData.currentCol = 0
-  gameData.wordToGuess = wordToGuess()
+  gameData.wordToGuess = await getWords()
   return { keyboardData, gameData }
 }
 export const keyboardData = writable({
@@ -231,20 +239,6 @@ export const keyboardData = writable({
 })
 const wordToGuess = () => {
   const wordsToGuess = [
-    'ARRAY'.split(''),
-    'TRAIT'.split(''),
-    'TREAT'.split(''),
-    'PANIC'.split(''),
-    'PANTS'.split(''),
-    'MOIST'.split(''),
-    'MOTOR'.split(''),
-    'BACON'.split(''),
-    'BANJO'.split(''),
-    'BARKS'.split(''),
-    'BARON'.split(''),
-    'BASIC'.split(''),
-    'BASIS'.split(''),
-    'BASTE'.split(''),
     'COURT'.split(''),
     'CRABS'.split(''),
     'DAMNS'.split(''),
