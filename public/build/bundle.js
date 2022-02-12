@@ -1481,7 +1481,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (9:2) {#each keysInRow as key}
+    // (7:2) {#each keysInRow as key}
     function create_each_block$1(ctx) {
     	let key;
     	let current;
@@ -1524,7 +1524,7 @@ var app = (function () {
     		block,
     		id: create_each_block$1.name,
     		type: "each",
-    		source: "(9:2) {#each keysInRow as key}",
+    		source: "(7:2) {#each keysInRow as key}",
     		ctx
     	});
 
@@ -1554,7 +1554,7 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(span, "class", "keyrow svelte-bofnpk");
+    			attr_dev(span, "class", "keyrow svelte-d1wl5z");
     			add_location(span, file$2, 5, 0, 83);
     		},
     		l: function claim(nodes) {
@@ -1967,11 +1967,11 @@ var app = (function () {
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? "red" : "black", false);
     			add_location(h1, file, 113, 2, 3708);
-    			attr_dev(p, "class", "svelte-4ule5t");
+    			attr_dev(p, "class", "svelte-1b0z11a");
     			add_location(p, file, 114, 2, 3777);
     			attr_dev(span, "class", "rows");
     			add_location(span, file, 123, 2, 4030);
-    			attr_dev(div, "class", "container svelte-4ule5t");
+    			attr_dev(div, "class", "container svelte-1b0z11a");
     			add_location(div, file, 112, 0, 3682);
     		},
     		l: function claim(nodes) {
@@ -2192,7 +2192,7 @@ var app = (function () {
 
     	$$self.$$.update = () => {
     		if ($$self.$$.dirty & /*$gameData*/ 1) {
-    			$$invalidate(1, message = $gameData.currentRow > 4 && !$gameData.gameWorn
+    			$$invalidate(1, message = $gameData.currentRow > 5 && !$gameData.gameWorn
     			? "Bad Luck"
     			: "Guess the word");
     		}

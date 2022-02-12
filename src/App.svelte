@@ -3,7 +3,7 @@
   import Keyboard from "./keyboard.svelte";
   import { gameData, keyboardData, initialiseStore } from "./store.js";
   $: message =
-    $gameData.currentRow > 4 && !$gameData.gameWorn
+    $gameData.currentRow > 5 && !$gameData.gameWorn
       ? "Bad Luck"
       : "Guess the word";
   const handleKeydown = (event) => {
@@ -139,7 +139,7 @@
     display: grid;
     justify-content: center;
     justify-items: center;
-    gap: 2 rem;
+    gap: 1rem;
     height: 4rem;
   }
 </style>

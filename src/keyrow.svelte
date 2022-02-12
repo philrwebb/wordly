@@ -3,9 +3,7 @@
   export let keysInRow = [];
 </script>
 
-<span
-  class="keyrow"
->
+<span class="keyrow">
   {#each keysInRow as key}
     <Key letter={key} on:keypressed />
   {/each}
@@ -14,7 +12,7 @@
 <style>
   .keyrow {
     display: flex;
-	flex-direction: row;
+    flex-direction: row;
     margin: 2px;
   }
 </style>
