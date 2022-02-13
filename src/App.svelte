@@ -13,9 +13,9 @@
       ? "Bad Luck"
       : "Guess the word";
   onMount(async () => {
-    let word = await getWords();
-    $gameData.wordToGuess = word
-    console.log(word);
+    let words = await getWords();
+    $gameData.wordsToGuess = words
+    $gameData.wordToGuess = words[Math.floor(Math.random() * words.length)]
   });
   const handleKeydown = (event) => {
     event.preventDefault();
@@ -40,7 +40,6 @@
       );
       return;
     } else if ($gameData.currentCol <= 4 && event.key === "Enter") {
-      console.log("not finished");
       return;
     } else if (
       $gameData.currentCol <= 4 &&
@@ -82,7 +81,6 @@
     return keystate;
   };
   const checkWord = (row, word) => {
-    console.log(row, word);
     for (let i = 0; i <= 4; i++) {
       if (word[i] === row[i].content) {
         row[i].inWord = true;

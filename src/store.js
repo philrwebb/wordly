@@ -3,9 +3,11 @@ import supabase from './supabase'
 
 export const getWords = async () => {
   let { data: words, error } = await supabase.from('words').select('word')
-  if (error) {return error}
+  if (error) {
+    return error
+  }
   const wordArray = words.map((elm) => elm.word.split(''))
-  return wordArray[Math.floor(Math.random() * wordArray.length)]
+  return wordArray
 }
 
 export const initialiseStore = async (keyboardData, gameData) => {
@@ -28,7 +30,10 @@ export const initialiseStore = async (keyboardData, gameData) => {
   gameData.gameWon = false
   gameData.currentRow = 0
   gameData.currentCol = 0
-  gameData.wordToGuess = await getWords()
+  gameData.wordToGuess =
+    gameData.wordsToGuess[
+      Math.floor(Math.random() * gameData.wordsToGuess.length)
+    ]
   return { keyboardData, gameData }
 }
 export const keyboardData = writable({
@@ -237,45 +242,10 @@ export const keyboardData = writable({
     ],
   ],
 })
-const wordToGuess = () => {
-  const wordsToGuess = [
-    'COURT'.split(''),
-    'CRABS'.split(''),
-    'DAMNS'.split(''),
-    'CEDAR'.split(''),
-    'CEDES'.split(''),
-    'CEDED'.split(''),
-    'FACED'.split(''),
-    'FACES'.split(''),
-    'GRAVE'.split(''),
-    'GRAIL'.split(''),
-    'GRAIN'.split(''),
-    'GRAYS'.split(''),
-    'GRAZE'.split(''),
-    'HIDES'.split(''),
-    'CHAIN'.split(''),
-    'BRING'.split(''),
-    'COUNT'.split(''),
-    'CREAM'.split(''),
-    'DEBAR'.split(''),
-    'DAZES'.split(''),
-    'DEIFY'.split(''),
-    'DATED'.split(''),
-    'EAGER'.split(''),
-    'EAGLE'.split(''),
-    'EDITS'.split(''),
-    'ELEGY'.split(''),
-    'FIRST'.split(''),
-    'FISTS'.split(''),
-    'HORSE'.split(''),
-    'HUMAN'.split(''),
-    'HEAVY'.split(''),
-  ]
-  return wordsToGuess[Math.floor(Math.random() * wordsToGuess.length)]
-}
 
 export const gameData = writable({
-  wordToGuess: wordToGuess(),
+  wordToGuess: [],
+  wordsToGuess: [],
   gameWon: false,
   currentRow: 0,
   currentCol: 0,
