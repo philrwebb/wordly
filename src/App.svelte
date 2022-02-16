@@ -14,10 +14,13 @@
       : "Guess the word";
   onMount(async () => {
     let words = await getWords();
-    $gameData.wordsToGuess = words
-    $gameData.wordToGuess = words[Math.floor(Math.random() * words.length)]
+    $gameData.wordsToGuess = words;
+    $gameData.wordToGuess = words[Math.floor(Math.random() * words.length)];
   });
   const handleKeydown = (event) => {
+    if (event.key === "F12") {
+      return;
+    }
     event.preventDefault();
     if ($gameData.currentRow > 5) return;
     if (event.key === "Backspace" && $gameData.currentCol > 0) {
@@ -111,7 +114,7 @@
     if (event.key === "DEL") event.key = "Backspace";
     handleKeydown(event);
   };
-  const  resetGame = async () => {
+  const resetGame = async () => {
     const retVal = await initialiseStore($keyboardData, $gameData);
     $keyboardData = retVal.keyboardData;
     $gameData = retVal.gameData;
@@ -119,6 +122,7 @@
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
+
 <div class="container">
   <h1 style:color={$gameData.gameWon ? "red" : "black"}>WEBWORD</h1>
   <p>
@@ -150,5 +154,21 @@
     justify-items: center;
     gap: 1rem;
     height: 4rem;
+  }
+
+  .rows {
+    animation-name: show;
+    animation-duration: 3s;
+  }
+
+  @keyframes show {
+    from {
+      opacity: 0;
+      transform: rotate3d(1, 1, 1, 360deg);
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 </style>
