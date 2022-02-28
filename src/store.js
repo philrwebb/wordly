@@ -2,13 +2,16 @@ import { writable } from 'svelte/store'
 import supabase from './supabase'
 
 export const getWords = async () => {
-  if (localStorage.wordsToGuess && localStorage.wordsToGuess.length > 0) {
+  if (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) {
     let { data: words, error } = await supabase.from('words').select('word')
     if (error) {
       return error
     }
     const wordArray = words.map((elm) => elm.word.split(''))
     localStorage.wordsToGuess = JSON.stringify(wordArray)
+    console.log('from db')
+  } else {
+    console.log('from store')
   }
   return JSON.parse(localStorage.wordsToGuess);
 }
@@ -245,12 +248,7 @@ export const keyboardData = writable({
     ],
   ],
 })
-export const wordsToGuess = writable(
-  JSON.parse(localStorage.getItem('wordsToGuess')) || getWords(),
-)
-wordsToGuess.subscribe(
-  (val) => (localStorage.wordsToGuess = JSON.stringify(val)),
-)
+
 export const gameData = writable({
   wordToGuess: [],
   wordsToGuess: [],
