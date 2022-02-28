@@ -5675,12 +5675,15 @@ var app = (function () {
     const supabase = createClient(SUPABSE_URL, SUPABASE_PUBLIC_KEY);
 
     const getWords = async () => {
-      let { data: words, error } = await supabase.from('words').select('word');
-      if (error) {
-        return error
+      if (localStorage.wordsToGuess && localStorage.wordsToGuess.length > 0) {
+        let { data: words, error } = await supabase.from('words').select('word');
+        if (error) {
+          return error
+        }
+        const wordArray = words.map((elm) => elm.word.split(''));
+        localStorage.wordsToGuess = JSON.stringify(wordArray);
       }
-      const wordArray = words.map((elm) => elm.word.split(''));
-      return wordArray
+      return JSON.parse(localStorage.wordsToGuess);
     };
 
     const initialiseStore = async (keyboardData, gameData) => {
@@ -5915,7 +5918,12 @@ var app = (function () {
         ],
       ],
     });
-
+    const wordsToGuess = writable(
+      JSON.parse(localStorage.getItem('wordsToGuess')) || getWords(),
+    );
+    wordsToGuess.subscribe(
+      (val) => (localStorage.wordsToGuess = JSON.stringify(val)),
+    );
     const gameData = writable({
       wordToGuess: [],
       wordsToGuess: [],
