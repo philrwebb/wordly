@@ -2,7 +2,7 @@ import { writable } from 'svelte/store'
 import supabase from './supabase'
 
 export const getWords = async () => {
-  if (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) {
+  if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0)) {
     let { data: words, error } = await supabase.from('words').select('word')
     if (error) {
       return error

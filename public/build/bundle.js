@@ -5675,7 +5675,7 @@ var app = (function () {
     const supabase = createClient(SUPABSE_URL, SUPABASE_PUBLIC_KEY);
 
     const getWords = async () => {
-      if (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) {
+      if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0)) {
         let { data: words, error } = await supabase.from('words').select('word');
         if (error) {
           return error
