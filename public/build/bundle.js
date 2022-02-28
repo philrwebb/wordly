@@ -6697,7 +6697,7 @@ var app = (function () {
     		c: function create() {
     			button = element("button");
     			button.textContent = "Reset Game";
-    			add_location(button, file, 133, 6, 4259);
+    			add_location(button, file, 133, 6, 4261);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -6755,7 +6755,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			h1 = element("h1");
-    			h1.textContent = "WEBWORD";
+    			h1.textContent = "WEBB-WORD";
     			t1 = space();
     			p = element("p");
     			t2 = text(t2_value);
@@ -6769,9 +6769,9 @@ var app = (function () {
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? "red" : "black", false);
     			add_location(h1, file, 127, 2, 4006);
     			attr_dev(p, "class", "svelte-1bcfwg3");
-    			add_location(p, file, 128, 2, 4075);
+    			add_location(p, file, 128, 2, 4077);
     			attr_dev(span, "class", "rows svelte-1bcfwg3");
-    			add_location(span, file, 137, 2, 4328);
+    			add_location(span, file, 137, 2, 4330);
     			attr_dev(div, "class", "container svelte-1bcfwg3");
     			add_location(div, file, 126, 0, 3980);
     		},

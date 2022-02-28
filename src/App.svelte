@@ -125,7 +125,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="container">
-  <h1 style:color={$gameData.gameWon ? "red" : "black"}>WEBWORD</h1>
+  <h1 style:color={$gameData.gameWon ? "red" : "black"}>WEBB-WORD</h1>
   <p>
     {$gameData.gameWon
       ? `You won in ${$gameData.currentRow} attempts`
