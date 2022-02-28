@@ -9,8 +9,8 @@
     getWords,
   } from "./store.js";
   $: message =
-    $gameData.currentRow > 5 && !$gameData.gameWorn
-      ? "Bad Luck"
+    $gameData.currentRow > 5 && !$gameData.gameWon
+      ? `Bad Luck - the word was ${$gameData.wordToGuess.join('')}`
       : "Guess the word";
   onMount(async () => {
     let words = await getWords();
@@ -55,6 +55,7 @@
       $gameData.currentCol++;
       return;
     } else if ($gameData.currentRow > 4) {
+      
       message = "Bad Luck";
       return;
     }
