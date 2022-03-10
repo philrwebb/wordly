@@ -2,6 +2,8 @@
   import { onMount } from "svelte";
   import Rows from "./rows.svelte";
   import Keyboard from "./keyboard.svelte";
+
+
   import {
     gameData,
     keyboardData,
@@ -10,7 +12,7 @@
   } from "./store.js";
   $: message =
     $gameData.currentRow > 5 && !$gameData.gameWon
-      ? `Bad Luck - the word was ${$gameData.wordToGuess.join('')}`
+      ? `Bad Luck - the word was ${$gameData.wordToGuess.join("")}`
       : "Guess the word";
   onMount(async () => {
     let words = await getWords();
@@ -55,7 +57,6 @@
       $gameData.currentCol++;
       return;
     } else if ($gameData.currentRow > 4) {
-      
       message = "Bad Luck";
       return;
     }
@@ -159,17 +160,19 @@
 
   .rows {
     animation-name: show;
-    animation-duration: 3s;
+    animation-duration: 2s;
   }
 
   @keyframes show {
     from {
       opacity: 0;
+      border: 3px solid black;
       transform: rotate3d(1, 1, 1, 360deg);
     }
 
     to {
       opacity: 1;
+      border: none;
     }
   }
 </style>
