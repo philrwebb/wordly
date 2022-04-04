@@ -6193,7 +6193,7 @@ var app = (function () {
         return new SupabaseClient(supabaseUrl, supabaseKey, options);
     };
 
-    createClient(process.env.SUPABSE_URL, process.env.SUPABASE_PUBLIC_KEY);
+    createClient(env.SUPABSE_URL, env.SUPABASE_PUBLIC_KEY);
 
     const getFromSupabase = async () => {
       const retStream = await fetch('/.netlify/functions/supabase');
