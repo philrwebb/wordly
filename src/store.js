@@ -7,21 +7,21 @@ export const getFromSupabase = async () => {
   return retVal
 }
 
-export const getWords = async () => {
-  const numberInDB = await supabase.from('words').select('*', {count: 'exact' })
-  if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) || (numberInDB.count > JSON.parse(localStorage.getItem('wordsToGuess')).length)) {
-    let { data: words, error } = await supabase.from('words').select('word')
-    if (error) {
-      return error
-    }
-    const wordArray = words.map((elm) => elm.word.split(''))
-    localStorage.wordsToGuess = JSON.stringify(wordArray)
-    console.log('from db')
-  } else {
-    console.log('from store')
-  }
-  return JSON.parse(localStorage.wordsToGuess);
-}
+// export const getWords = async () => {
+//   const numberInDB = await supabase.from('words').select('*', {count: 'exact' })
+//   if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) || (numberInDB.count > JSON.parse(localStorage.getItem('wordsToGuess')).length)) {
+//     let { data: words, error } = await supabase.from('words').select('word')
+//     if (error) {
+//       return error
+//     }
+//     const wordArray = words.map((elm) => elm.word.split(''))
+//     localStorage.wordsToGuess = JSON.stringify(wordArray)
+//     console.log('from db')
+//   } else {
+//     console.log('from store')
+//   }
+//   return JSON.parse(localStorage.wordsToGuess);
+// }
 
 export const initialiseStore = async (keyboardData, gameData) => {
   for (let i = 0; i < keyboardData.keystate.length; i++) {
@@ -47,7 +47,7 @@ export const initialiseStore = async (keyboardData, gameData) => {
     // gameData.wordsToGuess[
     //   Math.floor(Math.random() * gameData.wordsToGuess.length)
     // ]
-  console.log(gameData.wordToGuess)
+  // console.log(gameData.wordToGuess)
   return { keyboardData, gameData }
 }
 export const keyboardData = writable({

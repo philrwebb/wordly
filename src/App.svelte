@@ -9,7 +9,6 @@
     gameData,
     keyboardData,
     initialiseStore,
-    getWords,
     getFromSupabase
   } from "./store.js";
   $: message =
@@ -17,10 +16,10 @@
       ? `Bad Luck - the word was ${$gameData.wordToGuess.join("")}`
       : "Guess the word";
   onMount(async () => {
-    let words = await getWords();
-    $gameData.wordsToGuess = words;
+    // let words = await getWords();
+    // $gameData.wordsToGuess = words;
     $gameData.wordToGuess = await getFromSupabase();
-    console.log($gameData.wordToGuess);
+    // console.log($gameData.wordToGuess);
   });
   const handleKeydown = (event) => {
     if (event.key === "F12") {
