@@ -10,6 +10,7 @@
     keyboardData,
     initialiseStore,
     getWords,
+    getFromSupabase
   } from "./store.js";
   $: message =
     $gameData.currentRow > 5 && !$gameData.gameWon
@@ -18,7 +19,8 @@
   onMount(async () => {
     let words = await getWords();
     $gameData.wordsToGuess = words;
-    $gameData.wordToGuess = words[Math.floor(Math.random() * words.length)];
+    $gameData.wordToGuess = await getFromSupabase();
+    console.log($gameData.wordToGuess);
   });
   const handleKeydown = (event) => {
     if (event.key === "F12") {

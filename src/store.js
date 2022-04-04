@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store'
 import supabase from './supabase'
 
-const getFromSupabase = async () => {
+export const getFromSupabase = async () => {
   const retStream = await fetch('/.netlify/functions/supabase')
   const retVal = await retStream.json()
   return retVal
