@@ -7,22 +7,6 @@ export const getFromSupabase = async () => {
   return retVal
 }
 
-// export const getWords = async () => {
-//   const numberInDB = await supabase.from('words').select('*', {count: 'exact' })
-//   if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) || (numberInDB.count > JSON.parse(localStorage.getItem('wordsToGuess')).length)) {
-//     let { data: words, error } = await supabase.from('words').select('word')
-//     if (error) {
-//       return error
-//     }
-//     const wordArray = words.map((elm) => elm.word.split(''))
-//     localStorage.wordsToGuess = JSON.stringify(wordArray)
-//     console.log('from db')
-//   } else {
-//     console.log('from store')
-//   }
-//   return JSON.parse(localStorage.wordsToGuess);
-// }
-
 export const initialiseStore = async (keyboardData, gameData) => {
   for (let i = 0; i < keyboardData.keystate.length; i++) {
     for (let j = 0; j < keyboardData.keystate[i].length; j++) {
@@ -43,7 +27,7 @@ export const initialiseStore = async (keyboardData, gameData) => {
   gameData.gameWon = false
   gameData.currentRow = 0
   gameData.currentCol = 0
-  gameData.wordToGuess = await getFromSupabase();
+  gameData.wordToGuess = await getFromSupabase()
   return { keyboardData, gameData }
 }
 export const keyboardData = writable({

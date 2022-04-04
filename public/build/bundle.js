@@ -6193,32 +6193,13 @@ var app = (function () {
         return new SupabaseClient(supabaseUrl, supabaseKey, options);
     };
 
-    const SUPABSE_URL = 'https://cfythzsmualnnqgwhxax.supabase.co';
-    const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0NDIxNDcxMCwiZXhwIjoxOTU5NzkwNzEwfQ.4f88YkUDDOMMaGms6F4R_TGhcdJV2XeeDgCcVv6atCo';
-
-    createClient(SUPABSE_URL, SUPABASE_PUBLIC_KEY);
+    createClient(process.env.SUPABSE_URL, process.env.SUPABASE_PUBLIC_KEY);
 
     const getFromSupabase = async () => {
       const retStream = await fetch('/.netlify/functions/supabase');
       const retVal = await retStream.json();
       return retVal
     };
-
-    // export const getWords = async () => {
-    //   const numberInDB = await supabase.from('words').select('*', {count: 'exact' })
-    //   if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) || (numberInDB.count > JSON.parse(localStorage.getItem('wordsToGuess')).length)) {
-    //     let { data: words, error } = await supabase.from('words').select('word')
-    //     if (error) {
-    //       return error
-    //     }
-    //     const wordArray = words.map((elm) => elm.word.split(''))
-    //     localStorage.wordsToGuess = JSON.stringify(wordArray)
-    //     console.log('from db')
-    //   } else {
-    //     console.log('from store')
-    //   }
-    //   return JSON.parse(localStorage.wordsToGuess);
-    // }
 
     const initialiseStore = async (keyboardData, gameData) => {
       for (let i = 0; i < keyboardData.keystate.length; i++) {
