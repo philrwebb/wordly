@@ -6223,7 +6223,6 @@ var app = (function () {
       } else {
         console.log('from store');
       }
-      console.log(await getFromSupabase());
       return JSON.parse(localStorage.wordsToGuess);
     };
 
