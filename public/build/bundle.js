@@ -1,7 +1,13 @@
 
 (function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
-var app = (function () {
+var app = (function (fs, path, os) {
     'use strict';
+
+    function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+    var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs);
+    var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
+    var os__default = /*#__PURE__*/_interopDefaultLegacy(os);
 
     function noop$2() { }
     const identity = x => x;
@@ -4934,14 +4940,14 @@ var app = (function () {
     	jshint: "^2.0.0",
     	tape: "^4.9.1"
     };
-    var config = {
+    var config$1 = {
     	verbose: false
     };
     var scripts = {
     	test: "tape test/unit/*.js",
     	gulp: "gulp"
     };
-    var main = "index";
+    var main$1 = "index";
     var directories = {
     	lib: "./lib"
     };
@@ -4959,9 +4965,9 @@ var app = (function () {
     	engines: engines,
     	dependencies: dependencies,
     	devDependencies: devDependencies,
-    	config: config,
+    	config: config$1,
     	scripts: scripts,
-    	main: main,
+    	main: main$1,
     	directories: directories,
     	browser: browser$1,
     	license: license
@@ -6193,10 +6199,115 @@ var app = (function () {
         return new SupabaseClient(supabaseUrl, supabaseKey, options);
     };
 
-    const SUPABSE_URL =  'https://cfythzsmualnnqgwhxax.supabase.co';
-    const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0NDIxNDcxMCwiZXhwIjoxOTU5NzkwNzEwfQ.4f88YkUDDOMMaGms6F4R_TGhcdJV2XeeDgCcVv6atCo';
+    const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
 
-    createClient(SUPABSE_URL, SUPABASE_PUBLIC_KEY);
+    // Parser src into an Object
+    function parse (src) {
+      const obj = {};
+
+      // Convert buffer to string
+      let lines = src.toString();
+
+      // Convert line breaks to same format
+      lines = lines.replace(/\r\n?/mg, '\n');
+
+      let match;
+      while ((match = LINE.exec(lines)) != null) {
+        const key = match[1];
+
+        // Default undefined or null to empty string
+        let value = (match[2] || '');
+
+        // Remove whitespace
+        value = value.trim();
+
+        // Check if double quoted
+        const maybeQuote = value[0];
+
+        // Remove surrounding quotes
+        value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2');
+
+        // Expand newlines if double quoted
+        if (maybeQuote === '"') {
+          value = value.replace(/\\n/g, '\n');
+          value = value.replace(/\\r/g, '\r');
+        }
+
+        // Add to object
+        obj[key] = value;
+      }
+
+      return obj
+    }
+
+    function _log (message) {
+      console.log(`[dotenv][DEBUG] ${message}`);
+    }
+
+    function _resolveHome (envPath) {
+      return envPath[0] === '~' ? path__default["default"].join(os__default["default"].homedir(), envPath.slice(1)) : envPath
+    }
+
+    // Populates process.env from .env file
+    function config (options) {
+      let dotenvPath = path__default["default"].resolve(process.cwd(), '.env');
+      let encoding = 'utf8';
+      const debug = Boolean(options && options.debug);
+      const override = Boolean(options && options.override);
+
+      if (options) {
+        if (options.path != null) {
+          dotenvPath = _resolveHome(options.path);
+        }
+        if (options.encoding != null) {
+          encoding = options.encoding;
+        }
+      }
+
+      try {
+        // Specifying an encoding returns a string instead of a buffer
+        const parsed = DotenvModule.parse(fs__default["default"].readFileSync(dotenvPath, { encoding }));
+
+        Object.keys(parsed).forEach(function (key) {
+          if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+            process.env[key] = parsed[key];
+          } else {
+            if (override === true) {
+              process.env[key] = parsed[key];
+            }
+
+            if (debug) {
+              if (override === true) {
+                _log(`"${key}" is already defined in \`process.env\` and WAS overwritten`);
+              } else {
+                _log(`"${key}" is already defined in \`process.env\` and was NOT overwritten`);
+              }
+            }
+          }
+        });
+
+        return { parsed }
+      } catch (e) {
+        if (debug) {
+          _log(`Failed to load ${dotenvPath} ${e.message}`);
+        }
+
+        return { error: e }
+      }
+    }
+
+    const DotenvModule = {
+      config,
+      parse
+    };
+
+    var config_1 = DotenvModule.config;
+    var parse_1 = DotenvModule.parse;
+    var main = DotenvModule;
+    main.config = config_1;
+    main.parse = parse_1;
+
+    createClient(main.process.env.SUPABSE_URL, main.process.env.SUPABASE_PUBLIC_KEY);
 
     const getFromSupabase = async () => {
       const retStream = await fetch('/.netlify/functions/supabase');
@@ -7571,5 +7682,5 @@ var app = (function () {
 
     return app;
 
-})();
+})(fs, path, os);
 //# sourceMappingURL=bundle.js.map
