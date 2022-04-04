@@ -6193,7 +6193,10 @@ var app = (function () {
         return new SupabaseClient(supabaseUrl, supabaseKey, options);
     };
 
-    createClient(env.SUPABSE_URL, env.SUPABASE_PUBLIC_KEY);
+    const SUPABSE_URL =  'https://cfythzsmualnnqgwhxax.supabase.co';
+    const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0NDIxNDcxMCwiZXhwIjoxOTU5NzkwNzEwfQ.4f88YkUDDOMMaGms6F4R_TGhcdJV2XeeDgCcVv6atCo';
+
+    createClient(SUPABSE_URL, SUPABASE_PUBLIC_KEY);
 
     const getFromSupabase = async () => {
       const retStream = await fetch('/.netlify/functions/supabase');
