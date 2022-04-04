@@ -1,8 +1,9 @@
 <script>
+  import Instructions from "./instructions.svelte";
   import { onMount } from "svelte";
   import Rows from "./rows.svelte";
   import Keyboard from "./keyboard.svelte";
-
+  import { fly } from "svelte/transition";
 
   import {
     gameData,
@@ -136,7 +137,7 @@
     {/if}
   </p>
 
-  <span class="rows">
+  <span class="rows" in:fly={{ y: 200, duration: 2000 }}>
     <Rows />
   </span>
   <Keyboard on:keypressed={handlekeypressed} />
@@ -159,8 +160,8 @@
   }
 
   .rows {
-    animation-name: show;
-    animation-duration: 2s;
+    /* animation-name: show;
+    animation-duration: 2s; */
   }
 
   @keyframes show {

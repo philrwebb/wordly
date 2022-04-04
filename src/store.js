@@ -1,5 +1,11 @@
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import supabase from './supabase'
+
+const getFromSupabase = async () => {
+  const retStream = await fetch('/.netlify/functions/supabase')
+  const retVal = await retStream.json()
+  return retVal
+}
 
 export const getWords = async () => {
   const numberInDB = await supabase.from('words').select('*', {count: 'exact' })
@@ -14,6 +20,7 @@ export const getWords = async () => {
   } else {
     console.log('from store')
   }
+  console.log(await getFromSupabase())
   return JSON.parse(localStorage.wordsToGuess);
 }
 
@@ -41,6 +48,7 @@ export const initialiseStore = async (keyboardData, gameData) => {
     gameData.wordsToGuess[
       Math.floor(Math.random() * gameData.wordsToGuess.length)
     ]
+  console.log(await getFromSupabase())
   return { keyboardData, gameData }
 }
 export const keyboardData = writable({

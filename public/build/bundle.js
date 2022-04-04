@@ -4,6 +4,7 @@ var app = (function () {
     'use strict';
 
     function noop$2() { }
+    const identity = x => x;
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -46,8 +47,60 @@ var app = (function () {
         store.set(value);
         return ret;
     }
+
+    const is_client = typeof window !== 'undefined';
+    let now = is_client
+        ? () => window.performance.now()
+        : () => Date.now();
+    let raf = is_client ? cb => requestAnimationFrame(cb) : noop$2;
+
+    const tasks = new Set();
+    function run_tasks(now) {
+        tasks.forEach(task => {
+            if (!task.c(now)) {
+                tasks.delete(task);
+                task.f();
+            }
+        });
+        if (tasks.size !== 0)
+            raf(run_tasks);
+    }
+    /**
+     * Creates a new task that runs on each raf frame
+     * until it returns a falsy value or is aborted
+     */
+    function loop(callback) {
+        let task;
+        if (tasks.size === 0)
+            raf(run_tasks);
+        return {
+            promise: new Promise(fulfill => {
+                tasks.add(task = { c: callback, f: fulfill });
+            }),
+            abort() {
+                tasks.delete(task);
+            }
+        };
+    }
     function append(target, node) {
         target.appendChild(node);
+    }
+    function get_root_for_style(node) {
+        if (!node)
+            return document;
+        const root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+        if (root && root.host) {
+            return root;
+        }
+        return node.ownerDocument;
+    }
+    function append_empty_stylesheet(node) {
+        const style_element = element('style');
+        append_stylesheet(get_root_for_style(node), style_element);
+        return style_element.sheet;
+    }
+    function append_stylesheet(node, style) {
+        append(node.head || node, style);
     }
     function insert(target, node, anchor) {
         target.insertBefore(node, anchor || null);
@@ -95,6 +148,72 @@ var app = (function () {
         const e = document.createEvent('CustomEvent');
         e.initCustomEvent(type, bubbles, false, detail);
         return e;
+    }
+
+    // we need to store the information for multiple documents because a Svelte application could also contain iframes
+    // https://github.com/sveltejs/svelte/issues/3624
+    const managed_styles = new Map();
+    let active = 0;
+    // https://github.com/darkskyapp/string-hash/blob/master/index.js
+    function hash(str) {
+        let hash = 5381;
+        let i = str.length;
+        while (i--)
+            hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
+        return hash >>> 0;
+    }
+    function create_style_information(doc, node) {
+        const info = { stylesheet: append_empty_stylesheet(node), rules: {} };
+        managed_styles.set(doc, info);
+        return info;
+    }
+    function create_rule(node, a, b, duration, delay, ease, fn, uid = 0) {
+        const step = 16.666 / duration;
+        let keyframes = '{\n';
+        for (let p = 0; p <= 1; p += step) {
+            const t = a + (b - a) * ease(p);
+            keyframes += p * 100 + `%{${fn(t, 1 - t)}}\n`;
+        }
+        const rule = keyframes + `100% {${fn(b, 1 - b)}}\n}`;
+        const name = `__svelte_${hash(rule)}_${uid}`;
+        const doc = get_root_for_style(node);
+        const { stylesheet, rules } = managed_styles.get(doc) || create_style_information(doc, node);
+        if (!rules[name]) {
+            rules[name] = true;
+            stylesheet.insertRule(`@keyframes ${name} ${rule}`, stylesheet.cssRules.length);
+        }
+        const animation = node.style.animation || '';
+        node.style.animation = `${animation ? `${animation}, ` : ''}${name} ${duration}ms linear ${delay}ms 1 both`;
+        active += 1;
+        return name;
+    }
+    function delete_rule(node, name) {
+        const previous = (node.style.animation || '').split(', ');
+        const next = previous.filter(name
+            ? anim => anim.indexOf(name) < 0 // remove specific animation
+            : anim => anim.indexOf('__svelte') === -1 // remove all Svelte animations
+        );
+        const deleted = previous.length - next.length;
+        if (deleted) {
+            node.style.animation = next.join(', ');
+            active -= deleted;
+            if (!active)
+                clear_rules();
+        }
+    }
+    function clear_rules() {
+        raf(() => {
+            if (active)
+                return;
+            managed_styles.forEach(info => {
+                const { stylesheet } = info;
+                let i = stylesheet.cssRules.length;
+                while (i--)
+                    stylesheet.deleteRule(i);
+                info.rules = {};
+            });
+            managed_styles.clear();
+        });
     }
 
     let current_component;
@@ -215,6 +334,20 @@ var app = (function () {
             $$.after_update.forEach(add_render_callback);
         }
     }
+
+    let promise;
+    function wait() {
+        if (!promise) {
+            promise = Promise.resolve();
+            promise.then(() => {
+                promise = null;
+            });
+        }
+        return promise;
+    }
+    function dispatch(node, direction, kind) {
+        node.dispatchEvent(custom_event(`${direction ? 'intro' : 'outro'}${kind}`));
+    }
     const outroing = new Set();
     let outros;
     function group_outros() {
@@ -251,6 +384,70 @@ var app = (function () {
             });
             block.o(local);
         }
+    }
+    const null_transition = { duration: 0 };
+    function create_in_transition(node, fn, params) {
+        let config = fn(node, params);
+        let running = false;
+        let animation_name;
+        let task;
+        let uid = 0;
+        function cleanup() {
+            if (animation_name)
+                delete_rule(node, animation_name);
+        }
+        function go() {
+            const { delay = 0, duration = 300, easing = identity, tick = noop$2, css } = config || null_transition;
+            if (css)
+                animation_name = create_rule(node, 0, 1, duration, delay, easing, css, uid++);
+            tick(0, 1);
+            const start_time = now() + delay;
+            const end_time = start_time + duration;
+            if (task)
+                task.abort();
+            running = true;
+            add_render_callback(() => dispatch(node, true, 'start'));
+            task = loop(now => {
+                if (running) {
+                    if (now >= end_time) {
+                        tick(1, 0);
+                        dispatch(node, true, 'end');
+                        cleanup();
+                        return running = false;
+                    }
+                    if (now >= start_time) {
+                        const t = easing((now - start_time) / duration);
+                        tick(t, 1 - t);
+                    }
+                }
+                return running;
+            });
+        }
+        let started = false;
+        return {
+            start() {
+                if (started)
+                    return;
+                started = true;
+                delete_rule(node);
+                if (is_function(config)) {
+                    config = config();
+                    wait().then(go);
+                }
+                else {
+                    go();
+                }
+            },
+            invalidate() {
+                started = false;
+            },
+            end() {
+                if (running) {
+                    cleanup();
+                    running = false;
+                }
+            }
+        };
     }
     function create_component(block) {
         block && block.c();
@@ -461,9 +658,9 @@ var app = (function () {
 
     /* src/box.svelte generated by Svelte v3.46.3 */
 
-    const file$6 = "src/box.svelte";
+    const file$7 = "src/box.svelte";
 
-    function create_fragment$6(ctx) {
+    function create_fragment$7(ctx) {
     	let div;
     	let span;
     	let t_value = /*boxstate*/ ctx[0].content + "";
@@ -474,7 +671,7 @@ var app = (function () {
     			div = element("div");
     			span = element("span");
     			t = text(t_value);
-    			add_location(span, file$6, 4, 1, 177);
+    			add_location(span, file$7, 4, 1, 177);
     			attr_dev(div, "class", "box svelte-1mqn4s9");
     			set_style(div, "background-color", /*boxstate*/ ctx[0].color, false);
 
@@ -487,7 +684,7 @@ var app = (function () {
     				false
     			);
 
-    			add_location(div, file$6, 3, 0, 45);
+    			add_location(div, file$7, 3, 0, 45);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -524,7 +721,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$6.name,
+    		id: create_fragment$7.name,
     		type: "component",
     		source: "",
     		ctx
@@ -533,7 +730,7 @@ var app = (function () {
     	return block;
     }
 
-    function instance$6($$self, $$props, $$invalidate) {
+    function instance$7($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Box', slots, []);
     	let { boxstate = {} } = $$props;
@@ -563,13 +760,13 @@ var app = (function () {
     class Box extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$6, create_fragment$6, safe_not_equal, { boxstate: 0 });
+    		init(this, options, instance$7, create_fragment$7, safe_not_equal, { boxstate: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Box",
     			options,
-    			id: create_fragment$6.name
+    			id: create_fragment$7.name
     		});
     	}
 
@@ -583,7 +780,7 @@ var app = (function () {
     }
 
     /* src/row.svelte generated by Svelte v3.46.3 */
-    const file$5 = "src/row.svelte";
+    const file$6 = "src/row.svelte";
 
     function get_each_context$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
@@ -639,7 +836,7 @@ var app = (function () {
     	return block;
     }
 
-    function create_fragment$5(ctx) {
+    function create_fragment$6(ctx) {
     	let div;
     	let current;
     	let each_value = /*rowstate*/ ctx[0];
@@ -663,7 +860,7 @@ var app = (function () {
     			}
 
     			attr_dev(div, "class", "row svelte-o19ke8");
-    			add_location(div, file$5, 5, 0, 80);
+    			add_location(div, file$6, 5, 0, 80);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -732,7 +929,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$5.name,
+    		id: create_fragment$6.name,
     		type: "component",
     		source: "",
     		ctx
@@ -741,7 +938,7 @@ var app = (function () {
     	return block;
     }
 
-    function instance$5($$self, $$props, $$invalidate) {
+    function instance$6($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Row', slots, []);
     	let { rowstate = [] } = $$props;
@@ -771,13 +968,13 @@ var app = (function () {
     class Row extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { rowstate: 0 });
+    		init(this, options, instance$6, create_fragment$6, safe_not_equal, { rowstate: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Row",
     			options,
-    			id: create_fragment$5.name
+    			id: create_fragment$6.name
     		});
     	}
 
@@ -787,6 +984,333 @@ var app = (function () {
 
     	set rowstate(value) {
     		throw new Error("<Row>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src/instructions.svelte generated by Svelte v3.46.3 */
+    const file$5 = "src/instructions.svelte";
+
+    function create_fragment$5(ctx) {
+    	let div4;
+    	let h1;
+    	let t1;
+    	let div0;
+    	let p0;
+    	let t3;
+    	let p1;
+    	let t5;
+    	let p2;
+    	let t7;
+    	let hr0;
+    	let t8;
+    	let h20;
+    	let t10;
+    	let div1;
+    	let row0;
+    	let t11;
+    	let p3;
+    	let t13;
+    	let div2;
+    	let row1;
+    	let t14;
+    	let p4;
+    	let t16;
+    	let div3;
+    	let row2;
+    	let t17;
+    	let p5;
+    	let t19;
+    	let hr1;
+    	let t20;
+    	let h21;
+    	let current;
+
+    	row0 = new Row({
+    			props: { rowstate: /*rowstate1*/ ctx[0] },
+    			$$inline: true
+    		});
+
+    	row1 = new Row({
+    			props: { rowstate: /*rowstate2*/ ctx[1] },
+    			$$inline: true
+    		});
+
+    	row2 = new Row({
+    			props: { rowstate: /*rowstate3*/ ctx[2] },
+    			$$inline: true
+    		});
+
+    	const block = {
+    		c: function create() {
+    			div4 = element("div");
+    			h1 = element("h1");
+    			h1.textContent = "HOW TO PLAY";
+    			t1 = space();
+    			div0 = element("div");
+    			p0 = element("p");
+    			p0.textContent = "Guess the WORDLE in six tries.";
+    			t3 = space();
+    			p1 = element("p");
+    			p1.textContent = "Each guess must be a valid five-letter word. Hit the enter button to\n      submit.";
+    			t5 = space();
+    			p2 = element("p");
+    			p2.textContent = "After each guess, the color of the tiles will change to show how close\n      your guess was to the word.";
+    			t7 = space();
+    			hr0 = element("hr");
+    			t8 = space();
+    			h20 = element("h2");
+    			h20.textContent = "Examples";
+    			t10 = space();
+    			div1 = element("div");
+    			create_component(row0.$$.fragment);
+    			t11 = space();
+    			p3 = element("p");
+    			p3.textContent = "The letter W is in the word and in the correct spot.";
+    			t13 = space();
+    			div2 = element("div");
+    			create_component(row1.$$.fragment);
+    			t14 = space();
+    			p4 = element("p");
+    			p4.textContent = "The letter I is in the word but in the wrong spot.";
+    			t16 = space();
+    			div3 = element("div");
+    			create_component(row2.$$.fragment);
+    			t17 = space();
+    			p5 = element("p");
+    			p5.textContent = "The letter U is not in the word in any spot.";
+    			t19 = space();
+    			hr1 = element("hr");
+    			t20 = space();
+    			h21 = element("h2");
+    			h21.textContent = "A new WORDLE will be available each day!";
+    			add_location(h1, file$5, 26, 2, 1272);
+    			add_location(p0, file$5, 28, 4, 1321);
+    			add_location(p1, file$5, 29, 4, 1363);
+    			add_location(p2, file$5, 33, 4, 1469);
+    			attr_dev(div0, "class", "content");
+    			add_location(div0, file$5, 27, 2, 1295);
+    			add_location(hr0, file$5, 38, 0, 1602);
+    			add_location(h20, file$5, 39, 2, 1609);
+    			add_location(p3, file$5, 42, 4, 1687);
+    			attr_dev(div1, "class", "example svelte-1q9gj3f");
+    			add_location(div1, file$5, 40, 2, 1629);
+    			add_location(p4, file$5, 46, 4, 1818);
+    			attr_dev(div2, "class", "example svelte-1q9gj3f");
+    			add_location(div2, file$5, 44, 2, 1758);
+    			add_location(p5, file$5, 50, 4, 1948);
+    			attr_dev(div3, "class", "example svelte-1q9gj3f");
+    			add_location(div3, file$5, 48, 2, 1888);
+    			add_location(hr1, file$5, 52, 0, 2009);
+    			add_location(h21, file$5, 53, 3, 2017);
+    			attr_dev(div4, "class", "container");
+    			add_location(div4, file$5, 25, 0, 1246);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div4, anchor);
+    			append_dev(div4, h1);
+    			append_dev(div4, t1);
+    			append_dev(div4, div0);
+    			append_dev(div0, p0);
+    			append_dev(div0, t3);
+    			append_dev(div0, p1);
+    			append_dev(div0, t5);
+    			append_dev(div0, p2);
+    			append_dev(div4, t7);
+    			append_dev(div4, hr0);
+    			append_dev(div4, t8);
+    			append_dev(div4, h20);
+    			append_dev(div4, t10);
+    			append_dev(div4, div1);
+    			mount_component(row0, div1, null);
+    			append_dev(div1, t11);
+    			append_dev(div1, p3);
+    			append_dev(div4, t13);
+    			append_dev(div4, div2);
+    			mount_component(row1, div2, null);
+    			append_dev(div2, t14);
+    			append_dev(div2, p4);
+    			append_dev(div4, t16);
+    			append_dev(div4, div3);
+    			mount_component(row2, div3, null);
+    			append_dev(div3, t17);
+    			append_dev(div3, p5);
+    			append_dev(div4, t19);
+    			append_dev(div4, hr1);
+    			append_dev(div4, t20);
+    			append_dev(div4, h21);
+    			current = true;
+    		},
+    		p: noop$2,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(row0.$$.fragment, local);
+    			transition_in(row1.$$.fragment, local);
+    			transition_in(row2.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(row0.$$.fragment, local);
+    			transition_out(row1.$$.fragment, local);
+    			transition_out(row2.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div4);
+    			destroy_component(row0);
+    			destroy_component(row1);
+    			destroy_component(row2);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$5.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$5($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Instructions', slots, []);
+
+    	let rowstate1 = [
+    		{
+    			content: 'W',
+    			color: 'lightgreen',
+    			inWord: true,
+    			rightPlace: true
+    		},
+    		{
+    			content: 'E',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'A',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'R',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'Y',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		}
+    	];
+
+    	let rowstate2 = [
+    		{
+    			content: 'P',
+    			color: 'white',
+    			inWord: true,
+    			rightPlace: true
+    		},
+    		{
+    			content: 'I',
+    			color: '#fad6a5',
+    			inWord: true,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'L',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'L',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'S',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		}
+    	];
+
+    	let rowstate3 = [
+    		{
+    			content: 'V',
+    			color: 'white',
+    			inWord: true,
+    			rightPlace: true
+    		},
+    		{
+    			content: 'A',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'G',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'U',
+    			color: 'lightgrey',
+    			inWord: false,
+    			rightPlace: false
+    		},
+    		{
+    			content: 'E',
+    			color: 'white',
+    			inWord: false,
+    			rightPlace: false
+    		}
+    	];
+
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Instructions> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$capture_state = () => ({ Row, rowstate1, rowstate2, rowstate3 });
+
+    	$$self.$inject_state = $$props => {
+    		if ('rowstate1' in $$props) $$invalidate(0, rowstate1 = $$props.rowstate1);
+    		if ('rowstate2' in $$props) $$invalidate(1, rowstate2 = $$props.rowstate2);
+    		if ('rowstate3' in $$props) $$invalidate(2, rowstate3 = $$props.rowstate3);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [rowstate1, rowstate2, rowstate3];
+    }
+
+    class Instructions extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Instructions",
+    			options,
+    			id: create_fragment$5.name
+    		});
     	}
     }
 
@@ -1419,7 +1943,7 @@ var app = (function () {
     module.exports = exports;
     });
 
-    var fetch = /*@__PURE__*/getDefaultExportFromCjs(browserPonyfill);
+    var fetch$1 = /*@__PURE__*/getDefaultExportFromCjs(browserPonyfill);
 
     var __awaiter$8 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1451,7 +1975,7 @@ var app = (function () {
         params.body = JSON.stringify(body);
         return params;
     };
-    function _handleRequest$1(fetcher = fetch, method, url, options, body) {
+    function _handleRequest$1(fetcher = fetch$1, method, url, options, body) {
         return __awaiter$8(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 fetcher(url, _getRequestParams$1(method, options, body))
@@ -2948,7 +3472,7 @@ var app = (function () {
         constructor(builder) {
             this.shouldThrowOnError = false;
             Object.assign(this, builder);
-            this.fetch = builder.fetch || fetch;
+            this.fetch = builder.fetch || fetch$1;
         }
         /**
          * If there's an error with the query, throwOnError will reject the promise by
@@ -4996,7 +5520,7 @@ var app = (function () {
         params.body = JSON.stringify(body);
         return Object.assign(Object.assign({}, params), parameters);
     };
-    function _handleRequest(fetcher = fetch, method, url, options, parameters, body) {
+    function _handleRequest(fetcher = fetch$1, method, url, options, parameters, body) {
         return __awaiter$3(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 fetcher(url, _getRequestParams(method, options, parameters, body))
@@ -5213,7 +5737,7 @@ var app = (function () {
                     }
                     const cleanPath = this._removeEmptyFolders(path);
                     const _path = this._getFinalPath(cleanPath);
-                    const res = yield fetch(`${this.url}/object/${_path}`, {
+                    const res = yield fetch$1(`${this.url}/object/${_path}`, {
                         method,
                         body: body,
                         headers,
@@ -5674,6 +6198,12 @@ var app = (function () {
 
     const supabase = createClient(SUPABSE_URL, SUPABASE_PUBLIC_KEY);
 
+    const getFromSupabase = async () => {
+      const retStream = await fetch('/.netlify/functions/supabase');
+      const retVal = await retStream.json();
+      return retVal
+    };
+
     const getWords = async () => {
       const numberInDB = await supabase.from('words').select('*', {count: 'exact' });
       if ((localStorage.wordsToGuess === undefined) || (JSON.parse(localStorage.getItem('wordsToGuess')).length = 0) || (numberInDB.count > JSON.parse(localStorage.getItem('wordsToGuess')).length)) {
@@ -5687,6 +6217,7 @@ var app = (function () {
       } else {
         console.log('from store');
       }
+      console.log(await getFromSupabase());
       return JSON.parse(localStorage.wordsToGuess);
     };
 
@@ -5714,6 +6245,7 @@ var app = (function () {
         gameData.wordsToGuess[
           Math.floor(Math.random() * gameData.wordsToGuess.length)
         ];
+      console.log(await getFromSupabase());
       return { keyboardData, gameData }
     };
     const keyboardData = writable({
@@ -6684,10 +7216,30 @@ var app = (function () {
     	}
     }
 
+    function cubicOut(t) {
+        const f = t - 1.0;
+        return f * f * f + 1.0;
+    }
+
+    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
+        const style = getComputedStyle(node);
+        const target_opacity = +style.opacity;
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const od = target_opacity * (1 - opacity);
+        return {
+            delay,
+            duration,
+            easing,
+            css: (t, u) => `
+			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
+			opacity: ${target_opacity - (od * u)}`
+        };
+    }
+
     /* src/App.svelte generated by Svelte v3.46.3 */
     const file = "src/App.svelte";
 
-    // (134:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}
+    // (135:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}
     function create_if_block(ctx) {
     	let button;
     	let mounted;
@@ -6697,7 +7249,7 @@ var app = (function () {
     		c: function create() {
     			button = element("button");
     			button.textContent = "Reset Game";
-    			add_location(button, file, 134, 6, 4256);
+    			add_location(button, file, 135, 6, 4350);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -6719,7 +7271,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(134:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}",
+    		source: "(135:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}",
     		ctx
     	});
 
@@ -6741,6 +7293,7 @@ var app = (function () {
     	let t4;
     	let span;
     	let rows;
+    	let span_intro;
     	let t5;
     	let keyboard;
     	let current;
@@ -6767,13 +7320,13 @@ var app = (function () {
     			t5 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? "red" : "black", false);
-    			add_location(h1, file, 128, 2, 4001);
-    			attr_dev(p, "class", "svelte-19511fh");
-    			add_location(p, file, 129, 2, 4072);
-    			attr_dev(span, "class", "rows svelte-19511fh");
-    			add_location(span, file, 138, 2, 4325);
-    			attr_dev(div, "class", "container svelte-19511fh");
-    			add_location(div, file, 127, 0, 3975);
+    			add_location(h1, file, 129, 2, 4095);
+    			attr_dev(p, "class", "svelte-1juoyqj");
+    			add_location(p, file, 130, 2, 4166);
+    			attr_dev(span, "class", "rows svelte-1juoyqj");
+    			add_location(span, file, 139, 2, 4419);
+    			attr_dev(div, "class", "container svelte-1juoyqj");
+    			add_location(div, file, 128, 0, 4069);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -6823,6 +7376,14 @@ var app = (function () {
     		i: function intro(local) {
     			if (current) return;
     			transition_in(rows.$$.fragment, local);
+
+    			if (!span_intro) {
+    				add_render_callback(() => {
+    					span_intro = create_in_transition(span, fly, { y: 200, duration: 2000 });
+    					span_intro.start();
+    				});
+    			}
+
     			transition_in(keyboard.$$.fragment, local);
     			current = true;
     		},
@@ -6975,9 +7536,11 @@ var app = (function () {
     	});
 
     	$$self.$capture_state = () => ({
+    		Instructions,
     		onMount,
     		Rows,
     		Keyboard,
+    		fly,
     		gameData,
     		keyboardData,
     		initialiseStore,
