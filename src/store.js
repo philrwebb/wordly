@@ -43,11 +43,11 @@ export const initialiseStore = async (keyboardData, gameData) => {
   gameData.gameWon = false
   gameData.currentRow = 0
   gameData.currentCol = 0
-  gameData.wordToGuess =
-    gameData.wordsToGuess[
-      Math.floor(Math.random() * gameData.wordsToGuess.length)
-    ]
-  console.log(await getFromSupabase())
+  gameData.wordToGuess = await getFromSupabase();
+    // gameData.wordsToGuess[
+    //   Math.floor(Math.random() * gameData.wordsToGuess.length)
+    // ]
+  console.log(gameData.wordToGuess)
   return { keyboardData, gameData }
 }
 export const keyboardData = writable({
