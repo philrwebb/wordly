@@ -1362,14 +1362,11 @@ var app = (function () {
         return { set, update, subscribe };
     }
 
-    // import supabase from './supabase'
-
     const getFromSupabase = async () => {
       const retStream = await fetch('/.netlify/functions/supabase');
       const retVal = await retStream.json();
       return retVal
     };
-
     const initialiseStore = async (keyboardData, gameData) => {
       for (let i = 0; i < keyboardData.keystate.length; i++) {
         for (let j = 0; j < keyboardData.keystate[i].length; j++) {
@@ -1599,7 +1596,6 @@ var app = (function () {
         ],
       ],
     });
-
     const gameData = writable({
       wordToGuess: [],
       gameWon: false,

@@ -1,12 +1,9 @@
 import { get, writable } from 'svelte/store'
-// import supabase from './supabase'
-
 export const getFromSupabase = async () => {
   const retStream = await fetch('/.netlify/functions/supabase')
   const retVal = await retStream.json()
   return retVal
 }
-
 export const initialiseStore = async (keyboardData, gameData) => {
   for (let i = 0; i < keyboardData.keystate.length; i++) {
     for (let j = 0; j < keyboardData.keystate[i].length; j++) {
@@ -236,7 +233,6 @@ export const keyboardData = writable({
     ],
   ],
 })
-
 export const gameData = writable({
   wordToGuess: [],
   gameWon: false,
