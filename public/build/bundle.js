@@ -6241,10 +6241,6 @@ var app = (function () {
       gameData.currentRow = 0;
       gameData.currentCol = 0;
       gameData.wordToGuess = await getFromSupabase();
-        // gameData.wordsToGuess[
-        //   Math.floor(Math.random() * gameData.wordsToGuess.length)
-        // ]
-      // console.log(gameData.wordToGuess)
       return { keyboardData, gameData }
     };
     const keyboardData = writable({
@@ -6456,7 +6452,6 @@ var app = (function () {
 
     const gameData = writable({
       wordToGuess: [],
-      wordsToGuess: [],
       gameWon: false,
       currentRow: 0,
       currentCol: 0,
@@ -7239,7 +7234,7 @@ var app = (function () {
 
     const file = "src/App.svelte";
 
-    // (136:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}
+    // (133:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}
     function create_if_block(ctx) {
     	let button;
     	let mounted;
@@ -7249,7 +7244,7 @@ var app = (function () {
     		c: function create() {
     			button = element("button");
     			button.textContent = "Reset Game";
-    			add_location(button, file, 136, 6, 4381);
+    			add_location(button, file, 133, 6, 4262);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -7271,7 +7266,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(136:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}",
+    		source: "(133:4) {#if $gameData.gameWon || (!$gameData.gameWon && $gameData.currentRow > 5)}",
     		ctx
     	});
 
@@ -7320,13 +7315,13 @@ var app = (function () {
     			t5 = space();
     			create_component(keyboard.$$.fragment);
     			set_style(h1, "color", /*$gameData*/ ctx[0].gameWon ? "red" : "black", false);
-    			add_location(h1, file, 130, 2, 4126);
+    			add_location(h1, file, 127, 2, 4007);
     			attr_dev(p, "class", "svelte-1juoyqj");
-    			add_location(p, file, 131, 2, 4197);
+    			add_location(p, file, 128, 2, 4078);
     			attr_dev(span, "class", "rows svelte-1juoyqj");
-    			add_location(span, file, 140, 2, 4450);
+    			add_location(span, file, 137, 2, 4331);
     			attr_dev(div, "class", "container svelte-1juoyqj");
-    			add_location(div, file, 129, 0, 4100);
+    			add_location(div, file, 126, 0, 3981);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -7425,10 +7420,8 @@ var app = (function () {
     	validate_slots('App', slots, []);
 
     	onMount(async () => {
-    		// let words = await getWords();
-    		// $gameData.wordsToGuess = words;
     		set_store_value(gameData, $gameData.wordToGuess = await getFromSupabase(), $gameData);
-    	}); // console.log($gameData.wordToGuess);
+    	});
 
     	const handleKeydown = event => {
     		if (event.key === "F12") {
