@@ -158,8 +158,8 @@
   }
 
   .rows {
-    /* animation-name: show;
-    animation-duration: 2s; */
+    animation-name: show;
+    animation-duration: 2s;
   }
 
   @keyframes show {
