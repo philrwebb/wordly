@@ -1,4 +1,6 @@
 [build]
-    publish= "public/"
+    publish= "public"
     
-    functions = "serverless/"
+    functions = "serverless"
+
+    command = "npm run build"
