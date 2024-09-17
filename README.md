@@ -12,7 +12,7 @@ To get this project local - assuming you have node/npm, git:
 
 You can view this in action at:
 
-	https://philrwebb-word.netlify.com
+	https://philrwebb-word.netlify.app
 
 For further playing there is a svelte REPL at:
 
